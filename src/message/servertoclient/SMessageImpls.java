@@ -1,0 +1,262 @@
+package message.servertoclient;
+
+import java.util.List;
+
+import message.clienttoserver.CMessage;
+import message.clienttoserver.CMessageVisitor;
+import message.util.Util;
+
+public class SMessageImpls {
+    public static class OnlineUserList implements SMessage {
+        private List<String> handles;
+        
+        public OnlineUserList(List<String> handles) {
+            this.handles = handles;
+        }
+        
+        public List<String> getHandles() {
+            return handles;
+        }
+
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            return "users: " + Util.serializeList(handles);
+        }
+    }
+    
+    public static class InitialMessage implements SMessage, CMessage {
+        private long id;
+        private String senderHandle;
+        private List<String> allCommunicants;
+        private String textMessage;
+        
+        public InitialMessage(long id, String senderHandle, 
+                List<String> allCommunicants, String textMessage) {
+            this.id = id;
+            this.senderHandle = senderHandle;
+            this.allCommunicants = allCommunicants;
+            this.textMessage = textMessage;
+        }
+        
+        public long getId() {
+            return id;
+        }
+        
+        public String getSenderHandle() {
+            return senderHandle;
+        }
+        
+        public List<String> getAllCommunicants() {
+            return allCommunicants;
+        }
+        
+        public String getTextMessage() {
+            return textMessage;
+        }
+
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            return "initial\n" + id + "\n" + senderHandle + 
+                    "\n" + Util.serializeList(allCommunicants) + "\ntext: " +
+                    textMessage;
+        }
+
+        @Override
+        public <T> T accept(CMessageVisitor<T> cmv) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+    
+    public static class NormalAction implements SMessage, CMessage {
+        private long id;
+        private String senderHandle;
+        private ActionType at;
+        private List<String> handles;
+        private String textMessage;
+        
+        public static enum ActionType {
+            TEXT_MESSAGE, EXIT_CONV, ADD_USER;
+        }
+        
+        public NormalAction(long id, String senderHandle, ActionType at, 
+                List<String> handles, String textMessage) {
+            this.id = id;
+            this.senderHandle = senderHandle;
+            this.at = at;
+            this.handles = handles;
+            this.textMessage = textMessage;
+        }
+        
+        public long getId() {
+            return id;
+        }
+        
+        public String getSenderHandle() {
+            return senderHandle;
+        }
+        
+        public ActionType getActionType() {
+            return at;
+        }
+        
+        public List<String> getHandles() {
+            return handles;
+        }
+        
+        public String getTextMessage() {
+            return textMessage;
+        }
+
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            String actionPart = null;
+            switch(at) {
+            case TEXT_MESSAGE: actionPart = "text: " + textMessage; break;
+            case EXIT_CONV: actionPart = "exit"; break;
+            case ADD_USER: actionPart = "add :" + Util.serializeList(handles);
+            }
+            return "conv\n" + id + "\n" + senderHandle + "\n" + actionPart;
+        }
+
+        @Override
+        public <T> T accept(CMessageVisitor<T> cmv) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+    }
+    
+    public static class AvailabilityInfo implements SMessage {
+        private String handle;
+        private Status s;
+        
+        public static enum Status {
+            OFFLINE, ONLINE;
+        }
+        
+        public AvailabilityInfo(String handle, Status s) {
+            this.handle = handle;
+            this.s = s;
+        }
+        
+        public String getHandle() {
+            return handle;
+        }
+        
+        public Status getStatus() {
+            return s;
+        }
+
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            String tag = null;
+            switch(s) {
+            case OFFLINE: tag = "offline: "; break;
+            case ONLINE: tag = "online: "; break;
+            }
+            return tag + handle;
+        }
+    }
+    
+    public static class BadHandle implements SMessage {
+        private String handle;
+        
+        public BadHandle(String handle) {
+            this.handle = handle;
+        }
+        
+        public String getHandle() {
+            return handle;
+        }
+
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            return "unavailable: " + handle;
+        }
+    }
+    
+    public static class ReturnId implements SMessage {
+        long id;
+        
+        public ReturnId(long id) {
+            this.id = id;
+        }
+        
+        public long getId() {
+            return id;
+        }
+        
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            return "id: " + id;
+        }
+    }
+    
+    // TOOD: delegate deserialization to the individual classes?
+    public static SMessage deserialize(String wireMessage) {
+        String[] components = wireMessage.split("\n");
+        if (components[0].startsWith("id")) {
+            return new ReturnId(Long.parseLong(
+                    Util.removeTag(components[0])));
+        } else if (components[0].startsWith("initial")) {
+            return new InitialMessage(Long.parseLong(components[1]), 
+                    components[2], Util.deserializeList(components[3]),
+                    Util.removeTag(components[4]));
+        } else if (components[0].startsWith("conv")) {
+            String textMessage = null;
+            List<String> usersToAdd = null;
+            NormalAction.ActionType at = NormalAction.ActionType.EXIT_CONV;
+            if (components[3].startsWith("text")) {
+                textMessage = Util.removeTag(components[3]);
+                at = NormalAction.ActionType.TEXT_MESSAGE;
+            } else if (components[3].startsWith("add")) {
+                usersToAdd = Util.deserializeList(
+                        Util.removeTag(components[3]));
+                at = NormalAction.ActionType.ADD_USER;
+            }
+            return new NormalAction(Long.parseLong(components[1]), 
+                    components[2], at, usersToAdd, textMessage);
+        } else if (components[0].startsWith("online")) {
+            return new AvailabilityInfo(Util.removeTag(components[0]), 
+                    AvailabilityInfo.Status.ONLINE);
+        } else if (components[0].startsWith("offline")) {
+            return new AvailabilityInfo(Util.removeTag(components[0]), 
+                    AvailabilityInfo.Status.OFFLINE);
+        } else if (components[0].startsWith("unavailable")) {
+            return new BadHandle(Util.removeTag(components[0]));
+        } else {
+            return new OnlineUserList(Util.deserializeList(
+                    Util.removeTag(components[0])));
+        }
+    }
+}
