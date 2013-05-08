@@ -5,10 +5,14 @@ import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
 /**
@@ -19,62 +23,93 @@ import javax.swing.SwingUtilities;
  */
 @SuppressWarnings("serial")
 public class ChatGUI extends JFrame {
-	
-	private final List<JFrame> chatWindows;
-    private final JFrame testchatwindow;
-	
-    private final JList buddyList;
-    
 
-    public ChatGUI() {
-    	chatWindows = new ArrayList<JFrame>();    	
-    	buddyList = new JList();
-    	
-    	String ip;
-    	ip = JOptionPane.showInputDialog(null, "IP to connect to:");
-    	String username;
-    	username = JOptionPane.showInputDialog(null, "Choose a username:");
-    	
-    	testchatwindow = new JFrame();
-    	JTextArea display = new JTextArea();
-    	JTextField input = new JTextField();
-    	//display:
-    	testchatwindow.add(display);
-    	//textfield:
-    	testchatwindow.add(input);
-    	
-        
-        GroupLayout layout = new GroupLayout(this.getContentPane());
-        this.getContentPane().setLayout(layout);
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
-        
-        layout.setHorizontalGroup(
-        		layout.createSequentialGroup()
-        		.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-        				.addComponent(testchatwindow, 50, 50, 50))
-        		.addComponent(buddyList)
-        		);
-        
-        layout.setVerticalGroup(
-        		layout.createSequentialGroup()
-        		.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
-        				.addComponent(testchatwindow, 50, 50, 50)
-        				.addComponent(buddyList, 100, 100, 100))
-        		);
-        
-        
-        
-    } 
-    
-    public static void main(final String[] args) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                ChatGUI main = new ChatGUI();
-                main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);           
-                main.pack();                
-                main.setVisible(true);
-            }
-        });
-    }
+	public ChatGUI() {
+		List<JPanel> chatWindows = new ArrayList<JPanel>();    
+		
+		String[] buddies = {"Mike", "George", "Hannah"}; 
+		JList buddyList = new JList(buddies);
+		buddyList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		buddyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		buddyList.setVisibleRowCount(-1);
+		JScrollPane buddyScroll = new JScrollPane(buddyList);
+
+		String ip;
+		ip = JOptionPane.showInputDialog(null, "IP to connect to:");
+		String username;
+		username = JOptionPane.showInputDialog(null, "Choose a username:");
+
+
+		JLabel chatLabel = new JLabel();
+		chatLabel.setText("In this chat: you");
+
+		JLabel send = new JLabel();
+		send.setText("Send:");
+
+		JPanel testchatwindow = new JPanel();
+		JTextArea chat = new JTextArea(20, 40);
+		JScrollPane display = new JScrollPane(chat);
+		chat.setEditable(false);
+		JTextField input = new JTextField();
+		//display:
+		testchatwindow.add(display);
+		//textfield:
+		testchatwindow.add(input);
+
+
+		GroupLayout layout = new GroupLayout(this.getContentPane());
+		this.getContentPane().setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+
+		layout.setHorizontalGroup(
+				layout.createSequentialGroup()
+
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(testchatwindow)
+						.addComponent(chatLabel)
+						.addGroup(layout.createSequentialGroup()
+								.addComponent(send)
+								.addComponent(input)
+								)
+						)
+
+				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addComponent(buddyScroll)
+						)
+				);
+
+		layout.setVerticalGroup(
+				layout.createParallelGroup()
+				
+				.addGroup(layout.createSequentialGroup()
+						.addComponent(buddyScroll)
+						)
+						
+				.addGroup(layout.createSequentialGroup()
+						.addComponent(chatLabel)
+						.addComponent(testchatwindow)
+						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+								.addComponent(send)
+								.addComponent(input)
+								)
+						)
+								
+				
+		);
+
+
+
+	} 
+
+	public static void main(final String[] args) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				ChatGUI main = new ChatGUI();
+				main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);           
+				main.pack();                
+				main.setVisible(true);
+			}
+		});
+	}
 }
