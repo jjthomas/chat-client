@@ -7,7 +7,7 @@ import java.net.Socket;
 
 public abstract class SocketInputWorker extends Thread {
     private BufferedReader in;
-    private static final String DISCONNECT = "disconnect";
+    protected static final String DISCONNECT = "disconnect";
     
     public SocketInputWorker(Socket s) throws IOException {
         in = new BufferedReader(new InputStreamReader(s.getInputStream()));

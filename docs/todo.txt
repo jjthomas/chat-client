@@ -1,0 +1,4 @@
+1. Address Hayden's email comments.
+2. Update concurrency strategy.
+3. Update design doc to reflect changes to design -- for example, we now have a Disconnect client-to-server message (faked),
+and a map to store SSocketInputWorkers whose corresponding clients have not yet claimed a handle.

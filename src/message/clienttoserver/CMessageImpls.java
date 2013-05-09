@@ -5,12 +5,14 @@ import message.util.Util;
 
 public class CMessageImpls {
     public static class GetId implements CMessage {
-        private static GetId instance = new GetId();
+        private String senderHandle;
         
-        private GetId() {}
+        private GetId(String senderHandle) {
+            this.senderHandle = senderHandle;
+        }
         
-        public static GetId getInstance() {
-            return instance;
+        public String getSenderHandle() {
+            return senderHandle;
         }
 
         @Override
@@ -20,20 +22,26 @@ public class CMessageImpls {
         
         @Override
         public String toString() {
-            return "getid";
+            return "getid\n" + senderHandle;
         }
         
     }
     
     public static class RegisterHandle implements CMessage {
         private String handle;
+        private String tempHandle;
         
-        public RegisterHandle(String handle) {
+        public RegisterHandle(String handle, String tempHandle) {
             this.handle = handle;
+            this.tempHandle = tempHandle;
         }
         
         public String getHandle() {
             return handle;
+        }
+        
+        public String getTempHandle() {
+            return tempHandle;
         }
         
         @Override
@@ -48,12 +56,14 @@ public class CMessageImpls {
     }
     
     public static class GetUsers implements CMessage {
-        private static GetUsers instance = new GetUsers();
+        private String senderHandle;
         
-        private GetUsers() {}
+        private GetUsers(String senderHandle) {
+            this.senderHandle = senderHandle;
+        }
         
-        public static GetUsers getInstance() {
-            return instance;
+        public String getSenderHandle() {
+            return senderHandle;
         }
         
         @Override
@@ -63,7 +73,7 @@ public class CMessageImpls {
         
         @Override
         public String toString() {
-            return "getusers";
+            return "getusers\n" + senderHandle;
         }
     }
     
@@ -95,16 +105,17 @@ public class CMessageImpls {
     // TOOD: delegate deserialization to the individual classes?
     public static CMessage deserialize(String wireMessage) {
         if (wireMessage.startsWith("getid")) {
-            return GetId.getInstance();
+            return new GetId(wireMessage.substring(wireMessage.indexOf('\n') + 1));
         } else if (wireMessage.startsWith("initial") || 
                 wireMessage.startsWith("conv")) {
             return (CMessage) SMessageImpls.deserialize(wireMessage);
         } else if (wireMessage.startsWith("handle")) {
-            return new RegisterHandle(Util.removeTag(wireMessage));
+            return new RegisterHandle(Util.removeTag(wireMessage), 
+                    wireMessage.substring(wireMessage.indexOf('\n') + 1));
         } else if (wireMessage.startsWith("disconnect")) {
             return new Disconnect(Util.removeTag(wireMessage));
         } else {
-            return GetUsers.getInstance();
+            return new GetUsers(wireMessage.substring(wireMessage.indexOf('\n') + 1));
         }
     }
 }

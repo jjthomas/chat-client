@@ -1,5 +1,11 @@
 package main;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+import java.net.Socket;
+
+import server.ServerInputProcessor;
+
 /**
  * Chat server runner.
  */
@@ -8,9 +14,18 @@ public class Server {
     /**
      * Start a chat server.
      */
-    public static void main(String[] args) {
-        // YOUR CODE HERE
-        // It is not required (or recommended) to implement the server in
-        // this runner class.
+    public static void main(String[] args) throws IOException {
+        int port = 5000;
+        if (args.length > 0) {
+            port = Integer.parseInt(args[0]);
+        }
+        
+        ServerInputProcessor sip = new ServerInputProcessor();
+        ServerSocket ss = new ServerSocket(port); 
+        
+        while(true) {
+            Socket s = ss.accept();
+            sip.addClient(s);
+        }
     }
 }
