@@ -28,7 +28,7 @@ public class SSocketInputWorker extends SocketInputWorker {
         if (input.startsWith(SocketInputWorker.DISCONNECT))
             input += ": " + (handle == null ? tempHandle : handle);
         else if (input.startsWith("handle"))
-            input += "\n" + tempHandle;
+            input += CMessageImpls.SEPARATOR + tempHandle;
         CMessageImpls.deserialize(input).accept(cmv);
     }
 

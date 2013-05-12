@@ -19,11 +19,13 @@ public class Conversation {
         return communicants;
     }
     
-    public void addCommunicant(String communicant) {
-        communicants.add(communicant);
-    }
-    
     public void addCommunicants(List<String> additionalCommunicants) {
         communicants.addAll(additionalCommunicants);
+    }
+    
+    // returns true if communicants is now empty
+    public boolean deleteCommunicant(String communicant) {
+        communicants.remove(communicant);
+        return communicants.isEmpty();
     }
 }

@@ -1,5 +1,6 @@
 package message.servertoclient;
 
+import java.util.Collection;
 import java.util.List;
 
 import message.clienttoserver.CMessage;
@@ -7,14 +8,16 @@ import message.clienttoserver.CMessageVisitor;
 import message.util.Util;
 
 public class SMessageImpls {
+    
+    public static final String SEPARATOR = "/";
     public static class OnlineUserList implements SMessage {
-        private List<String> handles;
+        private Collection<String> handles;
         
-        public OnlineUserList(List<String> handles) {
+        public OnlineUserList(Collection<String> handles) {
             this.handles = handles;
         }
         
-        public List<String> getHandles() {
+        public Collection<String> getHandles() {
             return handles;
         }
 
@@ -25,7 +28,7 @@ public class SMessageImpls {
         
         @Override
         public String toString() {
-            return "users: " + Util.serializeList(handles);
+            return "users: " + Util.serializeCollection(handles);
         }
     }
     
@@ -66,15 +69,14 @@ public class SMessageImpls {
         
         @Override
         public String toString() {
-            return "initial\n" + id + "\n" + senderHandle + 
-                    "\n" + Util.serializeList(allCommunicants) + "\ntext: " +
-                    textMessage;
+            return "initial" + SEPARATOR + id + SEPARATOR + senderHandle + 
+                    SEPARATOR + Util.serializeCollection(allCommunicants) + 
+                    SEPARATOR + "text: " + textMessage;
         }
 
         @Override
         public <T> T accept(CMessageVisitor<T> cmv) {
-            // TODO Auto-generated method stub
-            return null;
+            return cmv.visit(this);
         }
     }
     
@@ -129,15 +131,15 @@ public class SMessageImpls {
             switch(at) {
             case TEXT_MESSAGE: actionPart = "text: " + textMessage; break;
             case EXIT_CONV: actionPart = "exit"; break;
-            case ADD_USER: actionPart = "add :" + Util.serializeList(handles);
+            case ADD_USER: actionPart = "add: " + Util.serializeCollection(handles);
             }
-            return "conv\n" + id + "\n" + senderHandle + "\n" + actionPart;
+            return "conv" + SEPARATOR + id + SEPARATOR + senderHandle + 
+                    SEPARATOR + actionPart;
         }
 
         @Override
         public <T> T accept(CMessageVisitor<T> cmv) {
-            // TODO Auto-generated method stub
-            return null;
+            return cmv.visit(this);
         }
     }
     
@@ -200,6 +202,29 @@ public class SMessageImpls {
         }
     }
     
+    public static class HandleClaimed implements SMessage {
+        private String handle;
+        
+        public HandleClaimed(String handle) {
+            this.handle = handle;
+        }
+        
+        public String getHandle() {
+            return handle;
+        }
+        
+        @Override
+        public <T> T accept(SMessageVisitor<T> smv) {
+            return smv.visit(this);
+        }
+        
+        @Override
+        public String toString() {
+            return "claimed: " + handle;
+        }
+        
+    }
+    
     public static class ReturnId implements SMessage {
         long id;
         
@@ -224,7 +249,7 @@ public class SMessageImpls {
     
     // TOOD: delegate deserialization to the individual classes?
     public static SMessage deserialize(String wireMessage) {
-        String[] components = wireMessage.split("\n");
+        String[] components = wireMessage.split(SEPARATOR);
         if (components[0].startsWith("id")) {
             return new ReturnId(Long.parseLong(
                     Util.removeTag(components[0])));

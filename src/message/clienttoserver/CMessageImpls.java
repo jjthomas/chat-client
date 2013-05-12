@@ -4,10 +4,12 @@ import message.servertoclient.SMessageImpls;
 import message.util.Util;
 
 public class CMessageImpls {
+    
+    public static final String SEPARATOR = "/";
     public static class GetId implements CMessage {
         private String senderHandle;
         
-        private GetId(String senderHandle) {
+        public GetId(String senderHandle) {
             this.senderHandle = senderHandle;
         }
         
@@ -22,7 +24,7 @@ public class CMessageImpls {
         
         @Override
         public String toString() {
-            return "getid\n" + senderHandle;
+            return "getid" + SEPARATOR + senderHandle;
         }
         
     }
@@ -58,7 +60,7 @@ public class CMessageImpls {
     public static class GetUsers implements CMessage {
         private String senderHandle;
         
-        private GetUsers(String senderHandle) {
+        public GetUsers(String senderHandle) {
             this.senderHandle = senderHandle;
         }
         
@@ -73,7 +75,7 @@ public class CMessageImpls {
         
         @Override
         public String toString() {
-            return "getusers\n" + senderHandle;
+            return "getusers" + SEPARATOR + senderHandle;
         }
     }
     
@@ -104,18 +106,18 @@ public class CMessageImpls {
     
     // TOOD: delegate deserialization to the individual classes?
     public static CMessage deserialize(String wireMessage) {
-        if (wireMessage.startsWith("getid")) {
-            return new GetId(wireMessage.substring(wireMessage.indexOf('\n') + 1));
-        } else if (wireMessage.startsWith("initial") || 
-                wireMessage.startsWith("conv")) {
+        String[] components = wireMessage.split(SEPARATOR);
+        if (components[0].startsWith("getid")) {
+            return new GetId(components[1]);
+        } else if (components[0].startsWith("initial") || 
+                components[0].startsWith("conv")) {
             return (CMessage) SMessageImpls.deserialize(wireMessage);
-        } else if (wireMessage.startsWith("handle")) {
-            return new RegisterHandle(Util.removeTag(wireMessage), 
-                    wireMessage.substring(wireMessage.indexOf('\n') + 1));
-        } else if (wireMessage.startsWith("disconnect")) {
-            return new Disconnect(Util.removeTag(wireMessage));
+        } else if (components[0].startsWith("handle")) {
+            return new RegisterHandle(Util.removeTag(components[0]), components[1]);
+        } else if (components[0].startsWith("disconnect")) {
+            return new Disconnect(Util.removeTag(components[0]));
         } else {
-            return new GetUsers(wireMessage.substring(wireMessage.indexOf('\n') + 1));
+            return new GetUsers(components[1]);
         }
     }
 }

@@ -1,6 +1,7 @@
 package message.util;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class Util {
@@ -14,7 +15,7 @@ public class Util {
         return result;
     }
     
-    public static String serializeList(List<String> l) {
+    public static String serializeCollection(Collection<String> l) {
         StringBuilder sb = new StringBuilder();
         for (String s : l) {
             sb.append(s);

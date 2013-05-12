@@ -24,7 +24,7 @@ public class SocketOutputWorker extends Thread {
         String toWrite = null;
         try {
             while (!out.checkError() && (toWrite = bq.take()) != null) {
-                out.write(toWrite);
+                out.write(toWrite + "\n"); // TODO check (DEBUG only)
             }
         } catch (InterruptedException impossible) {}
     }
