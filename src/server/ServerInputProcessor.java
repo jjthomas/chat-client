@@ -5,6 +5,7 @@ import io.SocketOutputWorker;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +24,6 @@ import message.servertoclient.SMessage;
 import message.servertoclient.SMessageImpls.AvailabilityInfo;
 import message.servertoclient.SMessageImpls.BadHandle;
 import message.servertoclient.SMessageImpls.HandleClaimed;
-import message.servertoclient.SMessageImpls.InitialMessage;
 import message.servertoclient.SMessageImpls.NormalAction;
 import message.servertoclient.SMessageImpls.OnlineUserList;
 import message.servertoclient.SMessageImpls.ReturnId;
@@ -71,19 +71,13 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
     }
 
     @Override
-    public Void visit(InitialMessage im) {
-        Conversation newC = new Conversation(im.getAllCommunicants(), 
-                im.getId());
-        conversations.put(im.getId(), newC);
-        for (String handle : im.getAllCommunicants()) {
-            outputWorkers.get(handle).add(im.toString());
-            conversationsByHandle.get(handle).add(newC);
-        }
-        return null;
-    }
-
-    @Override
     public Void visit(NormalAction na) {
+        if (!conversations.containsKey(na.getId())) {
+            Conversation newC = new Conversation(Arrays.asList(
+                    na.getSenderHandle()), na.getId());
+            conversations.put(na.getId(), newC);
+            conversationsByHandle.get(na.getSenderHandle()).add(newC);
+        }
         boolean conversationEmpty = false;
         if (na.getActionType() == NormalAction.ActionType.ADD_USER) {
             Conversation c = conversations.get(na.getId());

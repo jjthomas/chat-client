@@ -5,7 +5,6 @@ import io.SocketOutputWorker;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,19 +17,16 @@ import message.clienttoserver.CMessageImpls.RegisterHandle;
 import message.servertoclient.SMessageImpls.AvailabilityInfo;
 import message.servertoclient.SMessageImpls.BadHandle;
 import message.servertoclient.SMessageImpls.HandleClaimed;
-import message.servertoclient.SMessageImpls.InitialMessage;
 import message.servertoclient.SMessageImpls.NormalAction;
 import message.servertoclient.SMessageImpls.OnlineUserList;
 import message.servertoclient.SMessageImpls.ReturnId;
 import message.servertoclient.SMessageVisitor;
 
-public class ClientInputProcessor implements SMessageVisitor<Void> {
+public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     
     private MainListener ml;
     private Map<Long, ConversationListener> convListeners = 
             Collections.synchronizedMap(new HashMap<Long, ConversationListener>());
-    private Map<Long, List<String>> unstartedConversations = 
-            Collections.synchronizedMap(new HashMap<Long, List<String>>());
     private Map<Long, ConversationLog> convLogs = new HashMap<Long, ConversationLog>();
     private SocketOutputWorker sow;
     private String handle;
@@ -54,22 +50,15 @@ public class ClientInputProcessor implements SMessageVisitor<Void> {
 
     @Override
     public Void visit(ReturnId rid) {
-        unstartedConversations.put(rid.getId(), Arrays.asList(handle));
         makeConversation(rid.getId());
         return null;
     }
 
     @Override
-    public Void visit(InitialMessage im) { // TODO account for case 
-        // where we sent this InitialMessage
-        makeConversation(im.getId());
-        addMessage(im.getId(), im.getSenderHandle(), im.getTextMessage());
-        convListeners.get(im.getId()).addUsers(im.getAllCommunicants());
-        return null;
-    }
-
-    @Override
     public Void visit(NormalAction na) {
+        if (!convListeners.containsKey(na.getId())) {
+            makeConversation(na.getId());
+        }
         switch(na.getActionType()) {
         case ADD_USER:
             convListeners.get(na.getId()).addUsers(na.getHandles()); break;
@@ -99,8 +88,8 @@ public class ClientInputProcessor implements SMessageVisitor<Void> {
 
     @Override
     public Void visit(HandleClaimed hc) {
-        ml.handleClaimed(hc.getHandle());
         handle = hc.getHandle();
+        ml.handleClaimed(hc.getHandle());
         return null;
     }
 
@@ -110,41 +99,36 @@ public class ClientInputProcessor implements SMessageVisitor<Void> {
         return null;
     }
     
+    @Override
     public void getId() {
         sow.add(new GetId(handle).toString());
     }
     
+    @Override
     public void registerHandle(String handle) {
         sow.add(new RegisterHandle(handle, null).toString());
     }
     
+    @Override
     public void getUsers() {
         sow.add(new GetUsers(handle).toString());
     }
     
+    @Override
     public void addUsers(long id, List<String> users) {
-        if (unstartedConversations.containsKey(id)) {
-            unstartedConversations.get(id).addAll(users);
-        } else {
-            sow.add(new NormalAction(id, handle, NormalAction.ActionType.ADD_USER, 
-                    users, null).toString());
-        }
+        sow.add(new NormalAction(id, handle, NormalAction.ActionType.ADD_USER, 
+                users, null).toString());
     }
     
+    @Override
     public void exitConversation(long id) {
-        if (unstartedConversations.remove(id) == null) {
-            sow.add(new NormalAction(id, handle, NormalAction.ActionType.EXIT_CONV, 
-                    null, null).toString());
-        }
+        sow.add(new NormalAction(id, handle, NormalAction.ActionType.EXIT_CONV, 
+                null, null).toString());
     }
     
+    @Override
     public void sendMessage(long id, String message) {
-        List<String> users = unstartedConversations.remove(id);
-        if (users == null) {
-            sow.add(new NormalAction(id, handle, NormalAction.ActionType.TEXT_MESSAGE, 
-                    null, message).toString());
-        } else {
-            sow.add(new InitialMessage(id, handle, users, message).toString());
-        }
+        sow.add(new NormalAction(id, handle, NormalAction.ActionType.TEXT_MESSAGE, 
+                null, message).toString());
     }
 }

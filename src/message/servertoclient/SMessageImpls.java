@@ -32,54 +32,6 @@ public class SMessageImpls {
         }
     }
     
-    public static class InitialMessage implements SMessage, CMessage {
-        private long id;
-        private String senderHandle;
-        private List<String> allCommunicants;
-        private String textMessage;
-        
-        public InitialMessage(long id, String senderHandle, 
-                List<String> allCommunicants, String textMessage) {
-            this.id = id;
-            this.senderHandle = senderHandle;
-            this.allCommunicants = allCommunicants;
-            this.textMessage = textMessage;
-        }
-        
-        public long getId() {
-            return id;
-        }
-        
-        public String getSenderHandle() {
-            return senderHandle;
-        }
-        
-        public List<String> getAllCommunicants() {
-            return allCommunicants;
-        }
-        
-        public String getTextMessage() {
-            return textMessage;
-        }
-
-        @Override
-        public <T> T accept(SMessageVisitor<T> smv) {
-            return smv.visit(this);
-        }
-        
-        @Override
-        public String toString() {
-            return "initial" + SEPARATOR + id + SEPARATOR + senderHandle + 
-                    SEPARATOR + Util.serializeCollection(allCommunicants) + 
-                    SEPARATOR + "text: " + textMessage;
-        }
-
-        @Override
-        public <T> T accept(CMessageVisitor<T> cmv) {
-            return cmv.visit(this);
-        }
-    }
-    
     public static class NormalAction implements SMessage, CMessage {
         private long id;
         private String senderHandle;
@@ -253,10 +205,6 @@ public class SMessageImpls {
         if (components[0].startsWith("id")) {
             return new ReturnId(Long.parseLong(
                     Util.removeTag(components[0])));
-        } else if (components[0].startsWith("initial")) {
-            return new InitialMessage(Long.parseLong(components[1]), 
-                    components[2], Util.deserializeList(components[3]),
-                    Util.removeTag(components[4]));
         } else if (components[0].startsWith("conv")) {
             String textMessage = null;
             List<String> usersToAdd = null;
