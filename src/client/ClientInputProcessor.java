@@ -21,6 +21,7 @@ import message.servertoclient.SMessageImpls.NormalAction;
 import message.servertoclient.SMessageImpls.OnlineUserList;
 import message.servertoclient.SMessageImpls.ReturnId;
 import message.servertoclient.SMessageVisitor;
+import client.ConversationLog.Message;
 
 public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     
@@ -38,9 +39,21 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
         new CSocketInputWorker(s, this).start();
     }
     
+    // purely for testing
+    ClientInputProcessor(MainListener ml) {
+        this.ml = ml;
+    }
+    
     private void makeConversation(long id) {
-        convListeners.put(id, ml.makeConversationListener(id));
-        convLogs.put(id, new ConversationLog(id));
+        ConversationListener cl = ml.makeConversationListener(id);
+        convListeners.put(id, cl);
+        if (!convLogs.containsKey(id)) {
+            convLogs.put(id, new ConversationLog(id));
+        } else {
+            for (Message m : convLogs.get(id).getMessages()) {
+                cl.addMessage(m.getSender(), m.getMessage());
+            }
+        }
     }
     
     private void addMessage(long id, String sender, String message) {
@@ -122,6 +135,7 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     
     @Override
     public void exitConversation(long id) {
+        convListeners.remove(id);
         sow.add(new NormalAction(id, handle, NormalAction.ActionType.EXIT_CONV, 
                 null, null).toString());
     }

@@ -1,6 +1,5 @@
 package client;
 
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -34,8 +33,8 @@ public class ConversationLog {
         messages.add(new Message(sender, message));
     }
     
-    public Iterator<Message> messageIterator() {
-        return messages.iterator();
+    public List<Message> getMessages() {
+        return messages;
     }
     
     public long getId() {
