@@ -22,9 +22,9 @@ import javax.swing.SwingUtilities;
  * // guess, and guessTable in your GUI!
  */
 @SuppressWarnings("serial")
-public class ChatGUI extends JFrame {
+public class ChatWindow extends JFrame {
 
-	public ChatGUI() {
+	public ChatWindow() {
 		List<JPanel> chatWindows = new ArrayList<JPanel>();    
 		
 		String[] people = {"Mike", "George", "Hannah"}; 
@@ -33,11 +33,6 @@ public class ChatGUI extends JFrame {
 		inChatList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		inChatList.setVisibleRowCount(-1);
 		JScrollPane buddyScroll = new JScrollPane(inChatList);
-
-		String ip;
-		ip = JOptionPane.showInputDialog(null, "IP to connect to:");
-		String username;
-		username = JOptionPane.showInputDialog(null, "Choose a username:");
 
 
 		JLabel addUserLabel = new JLabel();
@@ -118,14 +113,4 @@ public class ChatGUI extends JFrame {
 
 	} 
 
-	public static void main(final String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				ChatGUI main = new ChatGUI();
-				main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);           
-				main.pack();                
-				main.setVisible(true);
-			}
-		});
-	}
 }
