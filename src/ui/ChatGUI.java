@@ -40,8 +40,13 @@ public class ChatGUI extends JFrame {
 		username = JOptionPane.showInputDialog(null, "Choose a username:");
 
 
-		JLabel chatLabel = new JLabel();
-		chatLabel.setText("In this chat: you");
+		JLabel addUserLabel = new JLabel();
+		addUserLabel.setText("Add user:");
+		
+		JLabel inChatLabel = new JLabel();
+		inChatLabel.setText("In this chat:");
+		
+		JTextField addName = new JTextField();
 
 		JLabel send = new JLabel();
 		send.setText("Send:");
@@ -65,16 +70,21 @@ public class ChatGUI extends JFrame {
 		layout.setHorizontalGroup(
 				layout.createSequentialGroup()
 
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createParallelGroup()
 						.addComponent(testchatwindow)
-						.addComponent(chatLabel)
+						
+						.addGroup(layout.createSequentialGroup()
+								.addComponent(addUserLabel)
+								.addComponent(addName))
+						
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(send)
 								.addComponent(input)
 								)
 						)
 
-				.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+				.addGroup(layout.createParallelGroup()
+						.addComponent(inChatLabel)
 						.addComponent(buddyScroll)
 						)
 				);
@@ -83,13 +93,19 @@ public class ChatGUI extends JFrame {
 				layout.createParallelGroup()
 				
 				.addGroup(layout.createSequentialGroup()
+						.addComponent(inChatLabel)
 						.addComponent(buddyScroll)
 						)
 						
 				.addGroup(layout.createSequentialGroup()
-						.addComponent(chatLabel)
+						
+						.addGroup(layout.createParallelGroup()
+								.addComponent(addUserLabel)
+								.addComponent(addName)
+							)
+						
 						.addComponent(testchatwindow)
-						.addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+						.addGroup(layout.createParallelGroup()
 								.addComponent(send)
 								.addComponent(input)
 								)
