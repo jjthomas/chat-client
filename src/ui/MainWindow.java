@@ -26,13 +26,21 @@ public class MainWindow extends JFrame {
 
 	public MainWindow() {
 		
+		String ip;
+		ip = JOptionPane.showInputDialog(null, "IP to connect to:");
+		String username;
+		username = JOptionPane.showInputDialog(null, "Choose a username:");		
 		
 		String[] buddies = {"Friend1", "Friend2", "Friend3", "Friend4", "Friend5", "Friend6"};
 		JList buddyList = new JList(buddies);
 		buddyList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		buddyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		buddyList.setPrototypeCellValue("Index 1234567890");
 		buddyList.setVisibleRowCount(-1);
 		JScrollPane buddyScroll = new JScrollPane(buddyList);
+		
+		JLabel hello = new JLabel();
+		hello.setText("Hello, "+username + "! Here are your friends online. Click on a friend to chat:");
 		
 		GroupLayout layout = new GroupLayout(this.getContentPane());
 		this.getContentPane().setLayout(layout);
@@ -40,15 +48,17 @@ public class MainWindow extends JFrame {
 		layout.setAutoCreateContainerGaps(true);
 
 		layout.setHorizontalGroup(
-				layout.createSequentialGroup()
+				layout.createParallelGroup()
 				
+				.addComponent(hello)
 				.addComponent(buddyScroll)
 				
 				);
 
 		layout.setVerticalGroup(
-				layout.createParallelGroup()
+				layout.createSequentialGroup()
 				
+				.addComponent(hello)
 				.addComponent(buddyScroll)
 				
 				);
@@ -56,12 +66,7 @@ public class MainWindow extends JFrame {
 
 	public static void main(final String[] args) {
 		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {
-				String ip;
-				ip = JOptionPane.showInputDialog(null, "IP to connect to:");
-				String username;
-				username = JOptionPane.showInputDialog(null, "Choose a username:");
-				
+			public void run() {				
 				
 				MainWindow main = new MainWindow();
 				main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);           
