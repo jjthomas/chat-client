@@ -20,3 +20,5 @@ message for conversation with unrecognized ID
 12. make sure the controller's role is clear
 13. make sure we can handle newlines and whatnot after the change of separator to / (and slash in the message) -- 
 use some sort of consolidate method that combines all components[] after 4 (or however many we expected without any slashes)
+14. make sure to test correct behavior for amendment (ClientInputProcessorTest)
+15. add tests for message package

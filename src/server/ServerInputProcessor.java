@@ -44,7 +44,9 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
     private Map<String, Set<Conversation>> conversationsByHandle = 
             Collections.synchronizedMap(new HashMap<String, Set<Conversation>>());
     
-    public void addClient(Socket s) {
+    // return the started threads, purely for
+    // testing purposes
+    public List<Thread> addClient(Socket s) {
         SocketOutputWorker sow = null;
         SSocketInputWorker ssiw = null;
         try {
@@ -53,6 +55,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         } catch (IOException ioe) {
             try {
                 s.close();
+                return null;
             } catch (IOException e) { /* can safely ignore */ }
         }
         
@@ -61,6 +64,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         nextTempId++;
         sow.start();
         ssiw.start();
+        return Arrays.asList(sow, ssiw);
     }
 
     @Override
@@ -155,7 +159,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
 
     @Override
     public Void visit(Disconnect d) {
-        outputWorkers.remove(d.getHandle());
+        outputWorkers.remove(d.getHandle()).add(""); // terminate the SocketOutputWorker
         if (handlelessInputWorkers.remove(d.getHandle()) == null) {
             Set<Conversation> convs = conversationsByHandle.get(d.getHandle());
             synchronized(convs) {

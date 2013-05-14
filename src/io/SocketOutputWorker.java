@@ -7,7 +7,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class SocketOutputWorker extends Thread {
-    private PrintWriter out;
+    // protected for testing
+    protected PrintWriter out;
     private BlockingQueue<String> bq = new LinkedBlockingQueue<String>();
     
     public SocketOutputWorker(Socket s) throws IOException {
@@ -23,7 +24,7 @@ public class SocketOutputWorker extends Thread {
     public void run() {
         String toWrite = null;
         try {
-            while (!out.checkError() && (toWrite = bq.take()) != null) {
+            while (!out.checkError() && !(toWrite = bq.take()).isEmpty()) {
                 out.write(toWrite + "\n"); // TODO check (DEBUG only)
             }
         } catch (InterruptedException impossible) {}
