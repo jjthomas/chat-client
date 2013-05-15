@@ -1,5 +1,7 @@
 package client.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import client.Controller;
 import client.ConversationListener;
@@ -38,6 +42,15 @@ public class MainWindow extends JFrame implements MainListener {
 		*/
 		
 		buddyList = new JList(onlinebuddies.toArray());
+		buddyList.addListSelectionListener( 
+				new ListSelectionListener(){
+					public void valueChanged(ListSelectionEvent e){
+						String selectedItem = (String) buddyList.getSelectedValue();
+						buddyList.clearSelection();
+						c.getId();
+					}
+				}
+				);
 		buddyList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		buddyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		buddyList.setPrototypeCellValue("Index 1234567890");
