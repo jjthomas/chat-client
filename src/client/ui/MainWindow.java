@@ -1,8 +1,12 @@
 package client.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
@@ -12,6 +16,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import client.Controller;
 import client.ConversationListener;
@@ -25,17 +31,31 @@ public class MainWindow extends JFrame implements MainListener {
     private static final String HANDLE_TAKEN = " (previous handle already taken)";
     private static final String WELCOME_TEXT = "Hello, *! Here are your " + 
             "friends online. Click on a friend to chat.";
+    private List<String> onlinebuddies;
+    private JList buddyList;
 
 	public MainWindow() {
 		
-		String[] buddies = {"Friend1", "Friend2", "Friend3", "Friend4", "Friend5", "Friend6"};
-		JList buddyList = new JList(buddies);
+		onlinebuddies = new ArrayList<String>();
+		/*
+		onlinebuddies.add("Friend1")
+		*/
+		
+		buddyList = new JList(onlinebuddies.toArray());
+		buddyList.addListSelectionListener( 
+				new ListSelectionListener(){
+					public void valueChanged(ListSelectionEvent e){
+						String selectedItem = (String) buddyList.getSelectedValue();
+						buddyList.clearSelection();
+						c.getId();
+					}
+				}
+				);
 		buddyList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		buddyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		buddyList.setPrototypeCellValue("Index 1234567890");
 		buddyList.setVisibleRowCount(-1);
 		JScrollPane buddyScroll = new JScrollPane(buddyList);
-		
 		hello = new JLabel();
 		
 		GroupLayout layout = new GroupLayout(this.getContentPane());
@@ -58,7 +78,7 @@ public class MainWindow extends JFrame implements MainListener {
 				.addComponent(buddyScroll)
 				
 				);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
 		pack();
 	}
 	
@@ -84,18 +104,33 @@ public class MainWindow extends JFrame implements MainListener {
     @Override
     public ConversationListener makeConversationListener(long id) {
         // TODO Auto-generated method stub
-        return null;
+        return new ChatWindow(id);
     }
 
     @Override
-    public void addOnlineUsers(Collection<String> handles) {
-        // TODO Auto-generated method stub
+    public void addOnlineUsers(final Collection<String> handles) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+		        for(String s: handles){
+		        	if(!onlinebuddies.contains(s)){
+		        		onlinebuddies.add(s);
+		        	}
+		        }
+		        
+		        buddyList.setListData(onlinebuddies.toArray());
+            }
+    	});
         
     }
 
     @Override
-    public void removeOfflineUser(String handle) {
-        // TODO Auto-generated method stub
+    public void removeOfflineUser(final String handle) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+		        onlinebuddies.remove(handle);
+		        buddyList.setListData(onlinebuddies.toArray());
+            }
+    	});
         
     }
 

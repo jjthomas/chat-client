@@ -1,5 +1,9 @@
 package client.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +16,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 import client.Controller;
 import client.ConversationListener;
@@ -32,14 +37,14 @@ public class ChatWindow extends JFrame implements ConversationListener {
     private long id;
     private JTextArea chat;
 
-	public ChatWindow(long id) {
+	public ChatWindow(final long id) {
 	    this.id = id; 
 		
 	    people = new ArrayList<String>();
-		people.add("Mike");
+		/*people.add("Mike");
 		people.add("George");
 		people.add("Hannah");
-		
+		*/
 		
 		inChatList = new JList(people.toArray());
 		inChatList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
@@ -50,22 +55,41 @@ public class ChatWindow extends JFrame implements ConversationListener {
 
 		JLabel addUserLabel = new JLabel();
 		addUserLabel.setText("Add user:");
+		final JTextField addName = new JTextField();
+		addName.addActionListener(
+				new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						String text = addName.getText();
+						addName.setText("");
+						ArrayList<String> users = new ArrayList<String>();
+						users.add(text);
+						c.addUsers(id, users);
+					}
+				}
+			);
 		
 		JLabel inChatLabel = new JLabel();
 		inChatLabel.setText("In this chat:");
+				
 		
-		JTextField addName = new JTextField();
-
 		JLabel send = new JLabel();
 		send.setText("Send:");
-
+		
+		input = new JTextField();
+		input.addActionListener(
+			new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					String text = input.getText();
+					input.setText("");
+					c.sendMessage(id, text);
+				}
+			}
+		);
+		
 		JPanel testchatwindow = new JPanel();
 		chat = new JTextArea(20, 40);
 		JScrollPane display = new JScrollPane(chat);
 		chat.setEditable(false);
-		
-		
-		input = new JTextField();
 		//display:
 		testchatwindow.add(display);
 		//textfield:
@@ -124,7 +148,50 @@ public class ChatWindow extends JFrame implements ConversationListener {
 				
 		);
 
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		this.addWindowListener(
+				new WindowListener(){
+					public void windowClosed(WindowEvent e) {
+				        c.exitConversation(id);
+				    }
+
+					@Override
+					public void windowActivated(WindowEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void windowClosing(WindowEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void windowDeactivated(WindowEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void windowDeiconified(WindowEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void windowIconified(WindowEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+
+					@Override
+					public void windowOpened(WindowEvent arg0) {
+						// TODO Auto-generated method stub
+						
+					}
+				}
+				);
 		pack();
 		setVisible(true);
 	}
@@ -135,29 +202,40 @@ public class ChatWindow extends JFrame implements ConversationListener {
     }
 
     @Override
-    public void addMessage(String senderHandle, String message) {
-    	chat.append(senderHandle+": "+message+"\n");
+    public void addMessage(final String senderHandle, final String message) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	chat.append(senderHandle+": "+message+"\n");
+            }
+        });
         
     }
 
     @Override
-    public void removeUser(String handle) {
-        people.remove(handle);
-        inChatList.setListData(people.toArray());
+    public void removeUser(final String handle) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	people.remove(handle);
+            	inChatList.setListData(people.toArray());
+            }
+    	});
         
     }
 
     @Override
-    public void addUsers(List<String> handles) {
-    	
-        for(String s:handles){
-        	if(!people.contains(s))
-        	{
-        	people.add(s);
-        	}
-        }
-        
-        inChatList.setListData(people.toArray());
+    public void addUsers(final List<String> handles) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+		        for(String s:handles){
+		        	if(!people.contains(s))
+		        	{
+		        	people.add(s);
+		        	}
+		        }
+		        
+		        inChatList.setListData(people.toArray());
+            }
+    	});
         
         
     } 
