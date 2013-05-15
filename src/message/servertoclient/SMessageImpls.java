@@ -241,6 +241,8 @@ public class SMessageImpls {
                     AvailabilityInfo.Status.OFFLINE);
         } else if (components[0].startsWith("unavailable")) {
             return new BadHandle(Util.removeTag(components[0]));
+        } else if (components[0].startsWith("claimed")) {
+            return new HandleClaimed(Util.removeTag(components[0]));
         } else {
             return new OnlineUserList(Util.deserializeList(
                     Util.removeTag(components[0])));

@@ -12,4 +12,5 @@ public interface Controller {
     public void addUsers(long id, List<String> users);
     public void exitConversation(long id);
     public void sendMessage(long id, String message);
+    public void addConversationListener(long id, ConversationListener cl);
 }

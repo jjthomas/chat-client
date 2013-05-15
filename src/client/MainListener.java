@@ -9,4 +9,5 @@ public interface MainListener {
     public void removeOfflineUser(String handle);
     public void badHandle(String handle);
     public void handleClaimed(String handle);
+    public void newId(long id);
 }

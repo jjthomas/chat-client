@@ -47,7 +47,7 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
         new CSocketInputWorker(s, this).start();
     }
     
-    private void makeConversation(long id, List<String> users) {
+    private void createdReceivedConversation(long id, List<String> users) {
         ConversationListener cl = ml.makeConversationListener(id);
         if (users != null)
             cl.addUsers(users);
@@ -68,14 +68,14 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
 
     @Override
     public Void visit(ReturnId rid) {
-        makeConversation(rid.getId(), null);
+        ml.newId(rid.getId());
         return null;
     }
 
     @Override
     public Void visit(NormalAction na) {
         if (!convListeners.containsKey(na.getId())) {
-            makeConversation(na.getId(), na.getCurrentUsers());
+            createdReceivedConversation(na.getId(), na.getCurrentUsers());
         }
         switch(na.getActionType()) {
         case ADD_USER:
@@ -149,5 +149,12 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     public void sendMessage(long id, String message) {
         sow.add(new NormalAction(id, handle, NormalAction.ActionType.TEXT_MESSAGE, 
                 null, null, message).toString());
+    }
+
+    @Override
+    public void addConversationListener(long id, ConversationListener cl) {
+        convListeners.put(id, cl);
+        convLogs.put(id, new ConversationLog(id));
+        cl.addUsers(Arrays.asList(handle));
     }
 }

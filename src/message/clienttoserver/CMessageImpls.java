@@ -109,8 +109,7 @@ public class CMessageImpls {
         String[] components = wireMessage.split(SEPARATOR);
         if (components[0].startsWith("getid")) {
             return new GetId(components[1]);
-        } else if (components[0].startsWith("initial") || 
-                components[0].startsWith("conv")) {
+        } else if (components[0].startsWith("conv")) {
             return (CMessage) SMessageImpls.deserialize(wireMessage);
         } else if (components[0].startsWith("handle")) {
             return new RegisterHandle(Util.removeTag(components[0]), components[1]);

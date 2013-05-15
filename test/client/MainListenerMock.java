@@ -61,4 +61,12 @@ public class MainListenerMock implements MainListener {
     public void setController(Controller c) {
         return; // no controller   
     }
+
+    @Override
+    public void newId(long id) {
+        try {
+            os.write(("ml" + S + "newId" + S + 
+                    id + "\n").getBytes());
+        } catch (IOException ioe) {}
+    }
 }

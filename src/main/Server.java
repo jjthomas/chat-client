@@ -24,8 +24,7 @@ public class Server {
     
     public void run(int port) throws IOException {
         ServerInputProcessor sip = new ServerInputProcessor();
-        ServerSocket ss = new ServerSocket(port); 
-        
+        ServerSocket ss = new ServerSocket(port);   
         while(true) {
             Socket s = ss.accept();
             sip.addClient(s);

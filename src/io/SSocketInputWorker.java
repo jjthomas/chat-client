@@ -3,20 +3,21 @@ package io;
 import java.io.IOException;
 import java.net.Socket;
 
+import server.CMessageDispatcher;
+
 import message.clienttoserver.CMessageImpls;
-import message.clienttoserver.CMessageVisitor;
 
 public class SSocketInputWorker extends SocketInputWorker {
     
     private String tempHandle;
     private String handle;
-    private CMessageVisitor<Void> cmv;
+    private CMessageDispatcher cmd;
     
-    public SSocketInputWorker(Socket s, String tempHandle, CMessageVisitor<Void> cmv) 
+    public SSocketInputWorker(Socket s, String tempHandle, CMessageDispatcher cmd) 
             throws IOException {
         super(s);
         this.tempHandle = tempHandle;
-        this.cmv = cmv;
+        this.cmd = cmd;
     }
     
     public void setHandle(String handle) {
@@ -29,7 +30,7 @@ public class SSocketInputWorker extends SocketInputWorker {
             input += ": " + (handle == null ? tempHandle : handle);
         else if (input.startsWith("handle"))
             input += CMessageImpls.SEPARATOR + tempHandle;
-        CMessageImpls.deserialize(input).accept(cmv);
+        cmd.add(CMessageImpls.deserialize(input));
     }
 
 }

@@ -34,11 +34,9 @@ public class ChatWindow extends JFrame implements ConversationListener {
     private JList inChatList;
     private List<String> people;
     private JTextField input;
-    private long id;
     private JTextArea chat;
 
-	public ChatWindow(final long id) {
-	    this.id = id; 
+	public ChatWindow(final long id) { 
 		
 	    people = new ArrayList<String>();
 		/*people.add("Mike");
@@ -148,7 +146,7 @@ public class ChatWindow extends JFrame implements ConversationListener {
 				
 		);
 
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		this.addWindowListener(
 				new WindowListener(){
 					public void windowClosed(WindowEvent e) {

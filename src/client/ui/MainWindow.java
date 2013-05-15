@@ -1,12 +1,13 @@
 package client.ui;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
@@ -33,19 +34,20 @@ public class MainWindow extends JFrame implements MainListener {
             "friends online. Click on a friend to chat.";
     private List<String> onlinebuddies;
     private JList buddyList;
+    private Queue<String> waitingConversations = new LinkedBlockingQueue<String>();
 
 	public MainWindow() {
 		
 		onlinebuddies = new ArrayList<String>();
-		/*
-		onlinebuddies.add("Friend1")
-		*/
 		
 		buddyList = new JList(onlinebuddies.toArray());
 		buddyList.addListSelectionListener( 
 				new ListSelectionListener(){
 					public void valueChanged(ListSelectionEvent e){
 						String selectedItem = (String) buddyList.getSelectedValue();
+						if (selectedItem == null)
+						    return;
+						waitingConversations.add(selectedItem);
 						buddyList.clearSelection();
 						c.getId();
 					}
@@ -78,8 +80,7 @@ public class MainWindow extends JFrame implements MainListener {
 				.addComponent(buddyScroll)
 				
 				);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
-		pack();
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
 	public void start() throws IOException {
@@ -103,8 +104,9 @@ public class MainWindow extends JFrame implements MainListener {
 
     @Override
     public ConversationListener makeConversationListener(long id) {
-        // TODO Auto-generated method stub
-        return new ChatWindow(id);
+        ConversationListener cl = new ChatWindow(id);
+        cl.setController(c);
+        return cl;
     }
 
     @Override
@@ -143,8 +145,10 @@ public class MainWindow extends JFrame implements MainListener {
     public void handleClaimed(final String handle) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                setVisible(true);
                 hello.setText(WELCOME_TEXT.replace("*", handle));
+                setVisible(true);
+                pack();
+                c.getUsers();
             }
         });
     }
@@ -152,5 +156,13 @@ public class MainWindow extends JFrame implements MainListener {
     @Override
     public void setController(Controller c) {
         this.c = c;
+    }
+
+    @Override
+    public void newId(long id) {
+        ConversationListener cl = new ChatWindow(id);
+        cl.setController(c);
+        c.addConversationListener(id, cl);
+        c.addUsers(id, Arrays.asList(waitingConversations.remove()));
     }
 }

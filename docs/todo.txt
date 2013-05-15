@@ -17,6 +17,13 @@ use some sort of consolidate method that combines all components[] after 4
 doc as much as possible)
 17. will we actually show a list of online users not in the conversation
 when "add users" is clicked? or will we show all users 
+18. make sure add user on server works properly when you add yourself to
+chat (click on yourself in chat window)
+19. show chat history not based on id for two-person chats but based on
+actual user
+20. solve concurrency bugs on server (related to original milestone 1
+blocking queue claim) or switch to a single-threaded queue server
+21. review GUI code
 
 Santhosh:
 14. make sure to test correct behavior for amendment (ClientInputProcessorTest)

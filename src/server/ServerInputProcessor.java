@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 
 import message.clienttoserver.CMessageImpls.Disconnect;
@@ -34,16 +33,23 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
     private static Pattern handlePattern = Pattern.compile("[a-zA-Z][a-zA-Z0-9]*");
     
     private long nextTempId = 0;
-    private AtomicLong nextConversationId = new AtomicLong();
+    private long nextConversationId = 0;
+    private ServerMessageDispatcher smd;
     
     private Map<Long, Conversation> conversations = 
-            Collections.synchronizedMap(new HashMap<Long, Conversation>());
+            new HashMap<Long, Conversation>();
     private Map<String, SocketOutputWorker> outputWorkers = 
-            Collections.synchronizedMap(new HashMap<String, SocketOutputWorker>());
+            new HashMap<String, SocketOutputWorker>();
     private Map<String, SSocketInputWorker> handlelessInputWorkers = 
-            Collections.synchronizedMap(new HashMap<String, SSocketInputWorker>());
+            new HashMap<String, SSocketInputWorker>();
     private Map<String, Set<Conversation>> conversationsByHandle = 
-            Collections.synchronizedMap(new HashMap<String, Set<Conversation>>());
+            new HashMap<String, Set<Conversation>>();
+    
+    
+    public ServerInputProcessor() {
+        smd = new ServerMessageDispatcher(this);
+        smd.start();
+    }
     
     // return the started threads, purely for
     // testing purposes
@@ -52,7 +58,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         SSocketInputWorker ssiw = null;
         try {
             sow = new SocketOutputWorker(s);
-            ssiw = new SSocketInputWorker(s, nextTempId + "", this);
+            ssiw = new SSocketInputWorker(s, nextTempId + "", smd);
         } catch (IOException ioe) {
             try {
                 s.close();
@@ -70,9 +76,22 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
 
     @Override
     public Void visit(GetId gid) {
-        ReturnId response = new ReturnId(nextConversationId.incrementAndGet());
+        ReturnId response = new ReturnId(nextConversationId++);
         outputWorkers.get(gid.getSenderHandle()).add(response.toString());
         return null;
+    }
+    
+    private NormalAction removeInvalidAddedUsers(NormalAction na) {
+        List<String> filteredAddedUsers = new ArrayList<String>();
+        Conversation c = conversations.get(na.getId());
+        for (String handle : na.getHandles()) {
+            if (conversationsByHandle.containsKey(handle) && 
+                    !c.getCommunicants().contains(handle))
+                filteredAddedUsers.add(handle);
+        }
+        return new NormalAction(na.getId(), na.getSenderHandle(), 
+                na.getActionType(), filteredAddedUsers, na.getCurrentUsers(), 
+                null);
     }
 
     @Override
@@ -86,12 +105,13 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         boolean conversationEmpty = false;
         NormalAction withCurrentUsers = null;
         if (na.getActionType() == NormalAction.ActionType.ADD_USER) {
+            na = removeInvalidAddedUsers(na);
+            if (na.getHandles().isEmpty())
+                return null;
             Conversation c = conversations.get(na.getId());
             List<String> currentUsers = new ArrayList<String>();
-            synchronized(c.getCommunicants()) {
-                for (String handle : c.getCommunicants()) {
-                    currentUsers.add(handle);
-                }
+            for (String handle : c.getCommunicants()) {
+                currentUsers.add(handle);
             }
             withCurrentUsers = new NormalAction(na.getId(), na.getSenderHandle(), 
                     na.getActionType(), na.getHandles(), currentUsers, 
@@ -109,13 +129,11 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         if (!conversationEmpty) {
             List<String> communicants = conversations.get(na.getId())
                     .getCommunicants();
-            synchronized(communicants) {
-                for (String handle : communicants)
-                    outputWorkers.get(handle).add((na.getActionType() == 
-                    NormalAction.ActionType.ADD_USER && 
-                    na.getHandles().contains(handle)) ? 
-                    withCurrentUsers.toString() : na.toString());
-            }
+            for (String handle : communicants)
+                outputWorkers.get(handle).add((na.getActionType() == 
+                NormalAction.ActionType.ADD_USER && 
+                na.getHandles().contains(handle)) ? 
+                withCurrentUsers.toString() : na.toString());
         } else {
             conversations.remove(na.getId());
         }
@@ -130,13 +148,11 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
             response = new BadHandle(rh.getHandle());
         } else {
             boolean claimed = true;
-            synchronized(conversationsByHandle) {
-                if (!conversationsByHandle.containsKey(rh.getHandle())) {
-                    conversationsByHandle.put(rh.getHandle(), 
-                            Collections.synchronizedSet(new HashSet<Conversation>()));
-                } else {
-                    claimed = false;
-                }
+            if (!conversationsByHandle.containsKey(rh.getHandle())) {
+                conversationsByHandle.put(rh.getHandle(), 
+                        Collections.synchronizedSet(new HashSet<Conversation>()));
+            } else {
+                claimed = false;
             }
             if (claimed) {
                 handlelessInputWorkers.remove(rh.getTempHandle()).setHandle(
@@ -144,13 +160,11 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
                 outputWorkers.put(rh.getHandle(), outputWorkers.remove(
                         rh.getTempHandle()));
                 response = new HandleClaimed(rh.getHandle());
-                synchronized(conversationsByHandle) {
-                    for (String handle : conversationsByHandle.keySet()) {
-                        if (!handle.equals(rh.getHandle())) {
-                            outputWorkers.get(handle).add(new 
-                                    AvailabilityInfo(rh.getHandle(), 
-                                            AvailabilityInfo.Status.ONLINE).toString());
-                        }
+                for (String handle : conversationsByHandle.keySet()) {
+                    if (!handle.equals(rh.getHandle())) {
+                        outputWorkers.get(handle).add(new 
+                                AvailabilityInfo(rh.getHandle(), 
+                                        AvailabilityInfo.Status.ONLINE).toString());
                     }
                 }
             } else {
@@ -165,11 +179,8 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
 
     @Override
     public Void visit(GetUsers gu) {
-        // toString() iterates over currentHandles
-        synchronized(conversationsByHandle) {
-            outputWorkers.get(gu.getSenderHandle()).add(new OnlineUserList(
-                    conversationsByHandle.keySet()).toString());
-        }
+        outputWorkers.get(gu.getSenderHandle()).add(new OnlineUserList(
+                conversationsByHandle.keySet()).toString());
         return null;
     }
 
@@ -178,19 +189,15 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         // terminate the SocketOutputWorker
         outputWorkers.remove(d.getHandle()).add("");
         if (handlelessInputWorkers.remove(d.getHandle()) == null) {
-            Set<Conversation> convs = conversationsByHandle.get(d.getHandle());
-            synchronized(convs) {
-                for (Conversation c : convs) {
-                    visit(new NormalAction(c.getId(), d.getHandle(), 
-                          NormalAction.ActionType.EXIT_CONV, null, null, null));
-                }
+            Set<Conversation> convs = new HashSet<Conversation>(conversationsByHandle.get(d.getHandle()));
+            for (Conversation c : convs) {
+                visit(new NormalAction(c.getId(), d.getHandle(), 
+                      NormalAction.ActionType.EXIT_CONV, null, null, null));
             }
             conversationsByHandle.remove(d.getHandle());
-            synchronized(conversationsByHandle) {
-                for (String handle : conversationsByHandle.keySet()) {
-                    outputWorkers.get(handle).add(new AvailabilityInfo(d.getHandle(), 
-                            AvailabilityInfo.Status.OFFLINE).toString());
-                }
+            for (String handle : conversationsByHandle.keySet()) {
+                outputWorkers.get(handle).add(new AvailabilityInfo(d.getHandle(), 
+                        AvailabilityInfo.Status.OFFLINE).toString());
             }
         }
         return null;

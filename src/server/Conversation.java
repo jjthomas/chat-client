@@ -1,5 +1,6 @@
 package server;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Conversation {
@@ -7,7 +8,7 @@ public class Conversation {
     private long id;
     
     public Conversation(List<String> communicants, long id) {
-        this.communicants = communicants;
+        this.communicants = new ArrayList<String>(communicants);
         this.id = id;
     }
     
