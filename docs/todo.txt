@@ -15,6 +15,8 @@ use some sort of consolidate method that combines all components[] after 4
 (or however many we expected without any slashes)
 16. add minimal comments throughout (try to make reference to design 
 doc as much as possible)
+17. will we actually show a list of online users not in the conversation
+when "add users" is clicked? or will we show all users 
 
 Santhosh:
 14. make sure to test correct behavior for amendment (ClientInputProcessorTest)
