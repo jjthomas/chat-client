@@ -7,13 +7,14 @@ import javax.swing.GroupLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
+
+import client.Controller;
+import client.ConversationListener;
 
 /**
  * // JottoGUI class is a UI for playing Jotto. 
@@ -22,13 +23,19 @@ import javax.swing.SwingUtilities;
  * // guess, and guessTable in your GUI!
  */
 @SuppressWarnings("serial")
-public class ChatWindow extends JFrame {
+public class ChatWindow extends JFrame implements ConversationListener {
+    
+    private Controller c;
+    private JList inChatList;
+    private JTextField input;
+    private long id;
 
-	public ChatWindow() {
+	public ChatWindow(long id) {
+	    this.id = id;
 		List<JPanel> chatWindows = new ArrayList<JPanel>();    
 		
 		String[] people = {"Mike", "George", "Hannah"}; 
-		JList inChatList = new JList(people);
+		inChatList = new JList(people);
 		inChatList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		inChatList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		inChatList.setVisibleRowCount(-1);
@@ -50,7 +57,7 @@ public class ChatWindow extends JFrame {
 		JTextArea chat = new JTextArea(20, 40);
 		JScrollPane display = new JScrollPane(chat);
 		chat.setEditable(false);
-		JTextField input = new JTextField();
+		input = new JTextField();
 		//display:
 		testchatwindow.add(display);
 		//textfield:
@@ -109,8 +116,32 @@ public class ChatWindow extends JFrame {
 				
 		);
 
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		pack();
+		setVisible(true);
+	}
 
+    @Override
+    public void setController(Controller c) {
+        this.c = c;
+    }
 
-	} 
+    @Override
+    public void addMessage(String senderHandle, String message) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void removeUser(String handle) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void addUsers(List<String> handles) {
+        // TODO Auto-generated method stub
+        
+    } 
 
 }

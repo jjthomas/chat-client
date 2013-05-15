@@ -1,36 +1,32 @@
 package client.ui;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.IOException;
+import java.net.Socket;
+import java.util.Collection;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 
+import client.Controller;
+import client.ConversationListener;
+import client.MainListener;
 
-/**
- * // JottoGUI class is a UI for playing Jotto. 
- * // Remember to name all your components, otherwise autograder will give a zero.
- * // Remember to use the objects newPuzzleButton, newPuzzleNumber, puzzleNumber,
- * // guess, and guessTable in your GUI!
- */
 @SuppressWarnings("serial")
-public class MainWindow extends JFrame {
+public class MainWindow extends JFrame implements MainListener {
+    
+    private Controller c;
+    private JLabel hello;
+    private static final String HANDLE_TAKEN = " (previous handle already taken)";
+    private static final String WELCOME_TEXT = "Hello, *! Here are your " + 
+            "friends online. Click on a friend to chat.";
 
 	public MainWindow() {
-		
-		String ip;
-		ip = JOptionPane.showInputDialog(null, "IP to connect to:");
-		String username;
-		username = JOptionPane.showInputDialog(null, "Choose a username:");		
 		
 		String[] buddies = {"Friend1", "Friend2", "Friend3", "Friend4", "Friend5", "Friend6"};
 		JList buddyList = new JList(buddies);
@@ -40,8 +36,7 @@ public class MainWindow extends JFrame {
 		buddyList.setVisibleRowCount(-1);
 		JScrollPane buddyScroll = new JScrollPane(buddyList);
 		
-		JLabel hello = new JLabel();
-		hello.setText("Hello, "+username + "! Here are your friends online. Click on a friend to chat:");
+		hello = new JLabel();
 		
 		GroupLayout layout = new GroupLayout(this.getContentPane());
 		this.getContentPane().setLayout(layout);
@@ -63,23 +58,64 @@ public class MainWindow extends JFrame {
 				.addComponent(buddyScroll)
 				
 				);
-	} 
-
-	public static void main(final String[] args) {
-		SwingUtilities.invokeLater(new Runnable() {
-			public void run() {				
-				
-				MainWindow main = new MainWindow();
-				main.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);           
-				main.pack();
-				main.setVisible(true);
-				
-				
-				ChatWindow chat = new ChatWindow();
-				chat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);           
-				chat.pack();
-				chat.setVisible(true);
-			}
-		});
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		pack();
 	}
+	
+	public void start() throws IOException {
+        String hostname = JOptionPane.showInputDialog(
+                "Hostname/IP of server (include port number after colon at end): ");
+        String[] components = hostname.split(":");
+        int port = 5000;
+        if (components.length > 1) {
+            port = Integer.parseInt(components[1]);
+        }
+        Socket s = new Socket(components[0], port);
+        c.initialize(s, this);
+        promptHandle("");
+	}
+	
+	public void promptHandle(String addendum) {
+        String handle = JOptionPane.showInputDialog(
+                "Enter desired handle" + addendum + ": ");
+        c.registerHandle(handle);
+	}
+
+    @Override
+    public ConversationListener makeConversationListener(long id) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public void addOnlineUsers(Collection<String> handles) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void removeOfflineUser(String handle) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void badHandle(String handle) {
+        promptHandle(HANDLE_TAKEN);
+    }
+
+    @Override
+    public void handleClaimed(final String handle) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                setVisible(true);
+                hello.setText(WELCOME_TEXT.replace("*", handle));
+            }
+        });
+    }
+
+    @Override
+    public void setController(Controller c) {
+        this.c = c;
+    }
 }

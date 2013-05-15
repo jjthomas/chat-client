@@ -19,7 +19,10 @@ public class Server {
         if (args.length > 0) {
             port = Integer.parseInt(args[0]);
         }
-        
+        new Server().run(port);
+    }
+    
+    public void run(int port) throws IOException {
         ServerInputProcessor sip = new ServerInputProcessor();
         ServerSocket ss = new ServerSocket(port); 
         

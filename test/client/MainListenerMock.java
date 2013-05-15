@@ -56,4 +56,9 @@ public class MainListenerMock implements MainListener {
                     handle + "\n").getBytes());
         } catch (IOException ioe) {}
     }
+
+    @Override
+    public void setController(Controller c) {
+        return; // no controller   
+    }
 }

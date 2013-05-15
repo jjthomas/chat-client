@@ -32,20 +32,25 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     private SocketOutputWorker sow;
     private String handle;
     
-    public ClientInputProcessor(Socket s, MainListener ml) throws IOException {
-        this.ml = ml;
-        sow = new SocketOutputWorker(s);
-        sow.start();
-        new CSocketInputWorker(s, this).start();
-    }
+    public ClientInputProcessor() {}
     
     // purely for testing
     ClientInputProcessor(MainListener ml) {
         this.ml = ml;
     }
     
-    private void makeConversation(long id) {
+    @Override
+    public void initialize(Socket s, MainListener ml) throws IOException {
+        this.ml = ml;
+        sow = new SocketOutputWorker(s);
+        sow.start();
+        new CSocketInputWorker(s, this).start();
+    }
+    
+    private void makeConversation(long id, List<String> users) {
         ConversationListener cl = ml.makeConversationListener(id);
+        if (users != null)
+            cl.addUsers(users);
         convListeners.put(id, cl);
         if (!convLogs.containsKey(id)) {
             convLogs.put(id, new ConversationLog(id));
@@ -63,14 +68,14 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
 
     @Override
     public Void visit(ReturnId rid) {
-        makeConversation(rid.getId());
+        makeConversation(rid.getId(), null);
         return null;
     }
 
     @Override
     public Void visit(NormalAction na) {
         if (!convListeners.containsKey(na.getId())) {
-            makeConversation(na.getId());
+            makeConversation(na.getId(), na.getCurrentUsers());
         }
         switch(na.getActionType()) {
         case ADD_USER:
@@ -130,19 +135,19 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     @Override
     public void addUsers(long id, List<String> users) {
         sow.add(new NormalAction(id, handle, NormalAction.ActionType.ADD_USER, 
-                users, null).toString());
+                users, null, null).toString());
     }
     
     @Override
     public void exitConversation(long id) {
         convListeners.remove(id);
         sow.add(new NormalAction(id, handle, NormalAction.ActionType.EXIT_CONV, 
-                null, null).toString());
+                null, null, null).toString());
     }
     
     @Override
     public void sendMessage(long id, String message) {
         sow.add(new NormalAction(id, handle, NormalAction.ActionType.TEXT_MESSAGE, 
-                null, message).toString());
+                null, null, message).toString());
     }
 }

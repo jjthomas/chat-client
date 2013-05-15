@@ -41,4 +41,9 @@ public class ConversationListenerMock implements ConversationListener {
                     Util.serializeCollection(handles) + "\n").getBytes());            
         } catch (IOException ioe) {}
     }
+
+    @Override
+    public void setController(Controller c) {
+        return; // no controller
+    }
 }

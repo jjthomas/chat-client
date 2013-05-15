@@ -37,6 +37,7 @@ public class SMessageImpls {
         private String senderHandle;
         private ActionType at;
         private List<String> handles;
+        private List<String> currentUsers;
         private String textMessage;
         
         public static enum ActionType {
@@ -44,11 +45,13 @@ public class SMessageImpls {
         }
         
         public NormalAction(long id, String senderHandle, ActionType at, 
-                List<String> handles, String textMessage) {
+                List<String> handles, List<String> currentUsers, 
+                String textMessage) {
             this.id = id;
             this.senderHandle = senderHandle;
             this.at = at;
             this.handles = handles;
+            this.currentUsers = currentUsers;
             this.textMessage = textMessage;
         }
         
@@ -68,6 +71,10 @@ public class SMessageImpls {
             return handles;
         }
         
+        public List<String> getCurrentUsers() {
+            return currentUsers;
+        }
+        
         public String getTextMessage() {
             return textMessage;
         }
@@ -83,7 +90,9 @@ public class SMessageImpls {
             switch(at) {
             case TEXT_MESSAGE: actionPart = "text: " + textMessage; break;
             case EXIT_CONV: actionPart = "exit"; break;
-            case ADD_USER: actionPart = "add: " + Util.serializeCollection(handles);
+            case ADD_USER: actionPart = "add: " + Util.serializeCollection(handles)
+                    + ((currentUsers == null) ? "" : SEPARATOR + "current: " + 
+                      Util.serializeCollection(currentUsers));
             }
             return "conv" + SEPARATOR + id + SEPARATOR + senderHandle + 
                     SEPARATOR + actionPart;
@@ -208,6 +217,7 @@ public class SMessageImpls {
         } else if (components[0].startsWith("conv")) {
             String textMessage = null;
             List<String> usersToAdd = null;
+            List<String> currentUsers = null;
             NormalAction.ActionType at = NormalAction.ActionType.EXIT_CONV;
             if (components[3].startsWith("text")) {
                 textMessage = Util.removeTag(components[3]);
@@ -216,9 +226,13 @@ public class SMessageImpls {
                 usersToAdd = Util.deserializeList(
                         Util.removeTag(components[3]));
                 at = NormalAction.ActionType.ADD_USER;
+                if (components.length == 5) {
+                    currentUsers = Util.deserializeList(Util.removeTag(
+                            components[4]));
+                }
             }
             return new NormalAction(Long.parseLong(components[1]), 
-                    components[2], at, usersToAdd, textMessage);
+                    components[2], at, usersToAdd, currentUsers, textMessage);
         } else if (components[0].startsWith("online")) {
             return new AvailabilityInfo(Util.removeTag(components[0]), 
                     AvailabilityInfo.Status.ONLINE);
