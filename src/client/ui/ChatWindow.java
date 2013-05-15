@@ -36,10 +36,10 @@ public class ChatWindow extends JFrame implements ConversationListener {
 	    this.id = id; 
 		
 	    people = new ArrayList<String>();
-		people.add("Mike");
+		/*people.add("Mike");
 		people.add("George");
 		people.add("Hannah");
-		
+		*/
 		
 		inChatList = new JList(people.toArray());
 		inChatList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);

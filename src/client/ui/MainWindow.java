@@ -2,7 +2,9 @@ package client.ui;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
@@ -25,11 +27,17 @@ public class MainWindow extends JFrame implements MainListener {
     private static final String HANDLE_TAKEN = " (previous handle already taken)";
     private static final String WELCOME_TEXT = "Hello, *! Here are your " + 
             "friends online. Click on a friend to chat.";
+    private List<String> onlinebuddies;
+    private JList buddyList;
 
 	public MainWindow() {
 		
-		String[] buddies = {"Friend1", "Friend2", "Friend3", "Friend4", "Friend5", "Friend6"};
-		JList buddyList = new JList(buddies);
+		onlinebuddies = new ArrayList<String>();
+		/*
+		onlinebuddies.add("Friend1")
+		*/
+		
+		buddyList = new JList(onlinebuddies.toArray());
 		buddyList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		buddyList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		buddyList.setPrototypeCellValue("Index 1234567890");
@@ -84,18 +92,25 @@ public class MainWindow extends JFrame implements MainListener {
     @Override
     public ConversationListener makeConversationListener(long id) {
         // TODO Auto-generated method stub
-        return null;
+        return new ChatWindow(id);
     }
 
     @Override
     public void addOnlineUsers(Collection<String> handles) {
-        // TODO Auto-generated method stub
+        for(String s: handles){
+        	if(!onlinebuddies.contains(s)){
+        		onlinebuddies.add(s);
+        	}
+        }
+        
+        buddyList.setListData(onlinebuddies.toArray());
         
     }
 
     @Override
     public void removeOfflineUser(String handle) {
-        // TODO Auto-generated method stub
+        onlinebuddies.remove(handle);
+        buddyList.setListData(onlinebuddies.toArray());
         
     }
 
