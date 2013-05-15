@@ -16,6 +16,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 
 import client.Controller;
 import client.ConversationListener;
@@ -201,29 +202,40 @@ public class ChatWindow extends JFrame implements ConversationListener {
     }
 
     @Override
-    public void addMessage(String senderHandle, String message) {
-    	chat.append(senderHandle+": "+message+"\n");
+    public void addMessage(final String senderHandle, final String message) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	chat.append(senderHandle+": "+message+"\n");
+            }
+        });
         
     }
 
     @Override
-    public void removeUser(String handle) {
-        people.remove(handle);
-        inChatList.setListData(people.toArray());
+    public void removeUser(final String handle) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+            	people.remove(handle);
+            	inChatList.setListData(people.toArray());
+            }
+    	});
         
     }
 
     @Override
-    public void addUsers(List<String> handles) {
-    	
-        for(String s:handles){
-        	if(!people.contains(s))
-        	{
-        	people.add(s);
-        	}
-        }
-        
-        inChatList.setListData(people.toArray());
+    public void addUsers(final List<String> handles) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+		        for(String s:handles){
+		        	if(!people.contains(s))
+		        	{
+		        	people.add(s);
+		        	}
+		        }
+		        
+		        inChatList.setListData(people.toArray());
+            }
+    	});
         
         
     } 

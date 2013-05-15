@@ -108,21 +108,29 @@ public class MainWindow extends JFrame implements MainListener {
     }
 
     @Override
-    public void addOnlineUsers(Collection<String> handles) {
-        for(String s: handles){
-        	if(!onlinebuddies.contains(s)){
-        		onlinebuddies.add(s);
-        	}
-        }
-        
-        buddyList.setListData(onlinebuddies.toArray());
+    public void addOnlineUsers(final Collection<String> handles) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+		        for(String s: handles){
+		        	if(!onlinebuddies.contains(s)){
+		        		onlinebuddies.add(s);
+		        	}
+		        }
+		        
+		        buddyList.setListData(onlinebuddies.toArray());
+            }
+    	});
         
     }
 
     @Override
-    public void removeOfflineUser(String handle) {
-        onlinebuddies.remove(handle);
-        buddyList.setListData(onlinebuddies.toArray());
+    public void removeOfflineUser(final String handle) {
+    	SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+		        onlinebuddies.remove(handle);
+		        buddyList.setListData(onlinebuddies.toArray());
+            }
+    	});
         
     }
 
