@@ -1,5 +1,7 @@
 package client.ui;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,7 +34,7 @@ public class ChatWindow extends JFrame implements ConversationListener {
     private long id;
     private JTextArea chat;
 
-	public ChatWindow(long id) {
+	public ChatWindow(final long id) {
 	    this.id = id; 
 		
 	    people = new ArrayList<String>();
@@ -50,22 +52,41 @@ public class ChatWindow extends JFrame implements ConversationListener {
 
 		JLabel addUserLabel = new JLabel();
 		addUserLabel.setText("Add user:");
+		final JTextField addName = new JTextField();
+		addName.addActionListener(
+				new ActionListener(){
+					public void actionPerformed(ActionEvent e){
+						String text = addName.getText();
+						addName.setText("");
+						ArrayList<String> users = new ArrayList<String>();
+						users.add(text);
+						c.addUsers(id, users);
+					}
+				}
+			);
 		
 		JLabel inChatLabel = new JLabel();
 		inChatLabel.setText("In this chat:");
+				
 		
-		JTextField addName = new JTextField();
-
 		JLabel send = new JLabel();
 		send.setText("Send:");
-
+		
+		input = new JTextField();
+		input.addActionListener(
+			new ActionListener(){
+				public void actionPerformed(ActionEvent e){
+					String text = input.getText();
+					input.setText("");
+					c.sendMessage(id, text);
+				}
+			}
+		);
+		
 		JPanel testchatwindow = new JPanel();
 		chat = new JTextArea(20, 40);
 		JScrollPane display = new JScrollPane(chat);
 		chat.setEditable(false);
-		
-		
-		input = new JTextField();
 		//display:
 		testchatwindow.add(display);
 		//textfield:

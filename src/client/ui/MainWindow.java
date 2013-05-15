@@ -43,7 +43,6 @@ public class MainWindow extends JFrame implements MainListener {
 		buddyList.setPrototypeCellValue("Index 1234567890");
 		buddyList.setVisibleRowCount(-1);
 		JScrollPane buddyScroll = new JScrollPane(buddyList);
-		
 		hello = new JLabel();
 		
 		GroupLayout layout = new GroupLayout(this.getContentPane());
