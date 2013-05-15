@@ -27,15 +27,21 @@ public class ChatWindow extends JFrame implements ConversationListener {
     
     private Controller c;
     private JList inChatList;
+    private List<String> people;
     private JTextField input;
     private long id;
+    private JTextArea chat;
 
 	public ChatWindow(long id) {
-	    this.id = id;
-		List<JPanel> chatWindows = new ArrayList<JPanel>();    
+	    this.id = id; 
 		
-		String[] people = {"Mike", "George", "Hannah"}; 
-		inChatList = new JList(people);
+	    people = new ArrayList<String>();
+		people.add("Mike");
+		people.add("George");
+		people.add("Hannah");
+		
+		
+		inChatList = new JList(people.toArray());
 		inChatList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 		inChatList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
 		inChatList.setVisibleRowCount(-1);
@@ -54,9 +60,11 @@ public class ChatWindow extends JFrame implements ConversationListener {
 		send.setText("Send:");
 
 		JPanel testchatwindow = new JPanel();
-		JTextArea chat = new JTextArea(20, 40);
+		chat = new JTextArea(20, 40);
 		JScrollPane display = new JScrollPane(chat);
 		chat.setEditable(false);
+		
+		
 		input = new JTextField();
 		//display:
 		testchatwindow.add(display);
@@ -128,19 +136,29 @@ public class ChatWindow extends JFrame implements ConversationListener {
 
     @Override
     public void addMessage(String senderHandle, String message) {
-        // TODO Auto-generated method stub
+    	chat.append(senderHandle+": "+message+"\n");
         
     }
 
     @Override
     public void removeUser(String handle) {
-        // TODO Auto-generated method stub
+        people.remove(handle);
+        inChatList.setListData(people.toArray());
         
     }
 
     @Override
     public void addUsers(List<String> handles) {
-        // TODO Auto-generated method stub
+    	
+        for(String s:handles){
+        	if(!people.contains(s))
+        	{
+        	people.add(s);
+        	}
+        }
+        
+        inChatList.setListData(people.toArray());
+        
         
     } 
 
