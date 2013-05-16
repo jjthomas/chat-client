@@ -37,7 +37,7 @@ public class MainWindow extends JFrame implements MainListener {
     private Controller c;
     private JLabel hello;
     private static final String HANDLE_TAKEN = " (previous handle either had invalid chars or was already taken)";
-    private static final String HOSTNAME_BAD = " (previous IP/hostname+port was unreachable)";
+    private static final String HOSTNAME_BAD = " (previous IP/hostname+port was unreachable or improperly formatted)";
     private static final String WELCOME_TEXT = "Hello, *! Here are your " + 
             "friends online. Click on a friend to chat.";
     private List<String> onlinebuddies;
@@ -95,18 +95,28 @@ public class MainWindow extends JFrame implements MainListener {
 	public void start(String addendum) throws IOException {
         String hostname = JOptionPane.showInputDialog(
                 "Hostname/IP of server" + addendum + ": ");
-        if (hostname == null) {
+        if (hostname == null || hostname.trim().isEmpty()) {
             start(HOSTNAME_INTRO);
             return;
         }
         
-        final String[] components = hostname.split(":");
-        final int port = components.length > 1 ? Integer.parseInt(components[1]) : 5000;
+        final String[] components = hostname.trim().split(":");
+        if (components.length > 2) {
+            start(HOSTNAME_BAD);
+            return;
+        }
+        final int port; 
+        try {
+            port = components.length == 2 ? Integer.parseInt(components[1].trim()) : 5000;
+        } catch (NumberFormatException nfe) {
+            start(HOSTNAME_BAD);
+            return;
+        }
         Future<Socket> f = e.submit(new Callable<Socket>() {
             public Socket call() {
                 Socket s = null;
                 try {
-                    s = new Socket(components[0], port);
+                    s = new Socket(components[0].trim(), port);
                 } catch (IOException ioe) {}
                 return s;
             }
@@ -127,17 +137,17 @@ public class MainWindow extends JFrame implements MainListener {
 	
 	public void promptHandle(String addendum) {
         String handle = JOptionPane.showInputDialog(
-                "Enter desired handle" + addendum + ": ");
+                "Enter desired alphanumeric handle that starts with a letter" + addendum + ": ");
         if (handle == null) {
             promptHandle("");
             return;
         }
-        c.registerHandle(handle);
+        c.registerHandle(handle.trim());
 	}
 
     @Override
     public ConversationListener makeConversationListener(long id) {
-        ConversationListener cl = new ChatWindow(id);
+        ConversationListener cl = new ConversationWindow(id);
         cl.setController(c);
         return cl;
     }
@@ -195,7 +205,7 @@ public class MainWindow extends JFrame implements MainListener {
 
     @Override
     public void newId(long id) {
-        ConversationListener cl = new ChatWindow(id);
+        ConversationListener cl = new ConversationWindow(id);
         cl.setController(c);
         c.addConversationListener(id, cl);
         c.addUsers(id, Arrays.asList(waitingConversations.remove()));

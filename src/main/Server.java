@@ -12,7 +12,9 @@ import server.ServerInputProcessor;
 public class Server {
 
     /**
-     * Start a chat server.
+     * Start a chat server. The first argument should be the desired
+     * port number. The port number will be set to 5000 if there are no
+     * arguments.
      */
     public static void main(String[] args) throws IOException {
         int port = 5000;

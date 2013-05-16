@@ -22,6 +22,7 @@ actual user
 20. solve concurrency bugs on server (related to original milestone 1
 blocking queue claim) or switch to a single-threaded queue server
 21. review GUI code
+22. explain how we implemented amendment changes
 
 Santhosh:
 14. make sure to test correct behavior for amendment (ClientInputProcessorTest)

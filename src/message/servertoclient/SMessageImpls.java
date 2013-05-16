@@ -72,7 +72,7 @@ public class SMessageImpls {
             List<String> usersToAdd = null;
             List<String> currentUsers = null;
             NormalAction.ActionType at = NormalAction.ActionType.EXIT_CONV;
-            String[] components = wireMessage.split(SEPARATOR);
+            String[] components = wireMessage.split(SEPARATOR, -1);
             if (components[3].startsWith("text")) {
                 textMessage = Util.removeTag(combine(components, 3));
                 at = NormalAction.ActionType.TEXT_MESSAGE;
@@ -267,7 +267,7 @@ public class SMessageImpls {
         } else if (wireMessage.startsWith("conv")) {
             return NormalAction.deserialize(wireMessage);
         } else if (wireMessage.startsWith("online") || 
-                wireMessage.startsWith("online")) {
+                wireMessage.startsWith("offline")) {
             return AvailabilityInfo.deserialize(wireMessage);
         } else if (wireMessage.startsWith("unavailable")) {
             return BadHandle.deserialize(wireMessage);

@@ -11,7 +11,8 @@ import client.ui.MainWindow;
 public class Client {
 
     /**
-     * Start a GUI chat client.
+     * Start a GUI chat client. The server runs on port 5000
+     * by default.
      */
     public static void main(String[] args) throws IOException {
         MainWindow mw = new MainWindow();

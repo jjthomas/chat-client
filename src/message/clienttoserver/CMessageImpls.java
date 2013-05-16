@@ -44,8 +44,9 @@ public class CMessageImpls {
         }
         
         public static RegisterHandle deserialize(String wireMessage) {
-            String[] components = wireMessage.split(SEPARATOR);
-            return new RegisterHandle(Util.removeTag(components[0]), components[1]);
+            int sepIndex = wireMessage.lastIndexOf(SEPARATOR);
+            return new RegisterHandle(Util.removeTag(wireMessage.substring
+                    (0, sepIndex)), wireMessage.substring(sepIndex + 1));
         }
         
         public String getHandle() {

@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -28,31 +27,55 @@ import message.servertoclient.SMessageImpls.NormalAction;
 import message.servertoclient.SMessageImpls.OnlineUserList;
 import message.servertoclient.SMessageImpls.ReturnId;
 
+/**
+ * See Conversation Design section 4d for high-level documentation.
+ */
 public class ServerInputProcessor implements CMessageVisitor<Void> {
     
+    // regex that all handles must match
     private static Pattern handlePattern = Pattern.compile("[a-zA-Z][a-zA-Z0-9]*");
     
+    // we first assign a temporary ID to connected clients since they have
+    // not yet registered a handle
     private long nextTempId = 0;
+    
     private long nextConversationId = 0;
     private ServerMessageDispatcher smd;
     
     private Map<Long, Conversation> conversations = 
             new HashMap<Long, Conversation>();
+    // a SocketOutputWorker for every connected client
     private Map<String, SocketOutputWorker> outputWorkers = 
             new HashMap<String, SocketOutputWorker>();
+    // SSocketInputWorkers for clients that have not yet 
+    // claimed handles. We need this map because once
+    // the handle is claimed, we need to set the handle
+    // variable in SSocketInputWorker.
     private Map<String, SSocketInputWorker> handlelessInputWorkers = 
             new HashMap<String, SSocketInputWorker>();
+    // for faster lookup of conversations by user
+    // the keySet of this Map is also our record of the 
+    // claimed handles
     private Map<String, Set<Conversation>> conversationsByHandle = 
             new HashMap<String, Set<Conversation>>();
     
     
     public ServerInputProcessor() {
+        // we use a sequential message dispatcher
+        // to eliminate all possiblity of concurrency
+        // issues
         smd = new ServerMessageDispatcher(this);
         smd.start();
     }
     
-    // return the started threads, purely for
-    // testing purposes
+
+    /**
+     * Set up the SSocketInputWorker and SocketOutputWorker for a
+     * newly connected client.
+     * @param s socket for newly connected client
+     * @return the started SocketInputWorker and SocketOutputWorker, purely for
+     * testing purposes
+     */
     public List<Thread> addClient(Socket s) {
         SocketOutputWorker sow = null;
         SSocketInputWorker ssiw = null;
@@ -63,7 +86,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
             try {
                 s.close();
                 return null;
-            } catch (IOException e) { /* can safely ignore */ }
+            } catch (IOException e) { return null; }
         }
         
         outputWorkers.put(nextTempId + "", sow);
@@ -74,6 +97,9 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         return Arrays.asList(sow, ssiw);
     }
 
+    /**
+     * Return the next available conversation ID to the requesting client.
+     */
     @Override
     public Void visit(GetId gid) {
         ReturnId response = new ReturnId(nextConversationId++);
@@ -81,11 +107,17 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         return null;
     }
     
+    /**
+     * Remove from a NormalAction any added users who are already
+     * in the targeted conversation or are no longer online.
+     * @param na a deserialized NormalAction message
+     * @return a sanitized version of the same NormalAction
+     */
     private NormalAction removeInvalidAddedUsers(NormalAction na) {
         List<String> filteredAddedUsers = new ArrayList<String>();
         Conversation c = conversations.get(na.getId());
         for (String handle : na.getHandles()) {
-            if (conversationsByHandle.containsKey(handle) && 
+            if (conversationsByHandle.containsKey(handle) /* user online */ && 
                     !c.getCommunicants().contains(handle))
                 filteredAddedUsers.add(handle);
         }
@@ -93,7 +125,12 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
                 na.getActionType(), filteredAddedUsers, na.getCurrentUsers(), 
                 null);
     }
-
+    
+    /**
+     * Process a NormalAction, updating our data structures
+     * and then forwarding the message to the relevant
+     * clients.
+     */
     @Override
     public Void visit(NormalAction na) {
         if (!conversations.containsKey(na.getId())) {
@@ -107,7 +144,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         if (na.getActionType() == NormalAction.ActionType.ADD_USER) {
             na = removeInvalidAddedUsers(na);
             if (na.getHandles().isEmpty())
-                return null;
+                return null; // do nothing since no added users were valid
             Conversation c = conversations.get(na.getId());
             List<String> currentUsers = new ArrayList<String>();
             for (String handle : c.getCommunicants()) {
@@ -139,7 +176,11 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         }
         return null;
     }
-
+    
+    /**
+     * Act on a user's request to register a handle and tell them
+     * whether the registration was successful or not.
+     */
     @Override
     public Void visit(RegisterHandle rh) {
         SMessage response = null;
@@ -150,7 +191,7 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
             boolean claimed = true;
             if (!conversationsByHandle.containsKey(rh.getHandle())) {
                 conversationsByHandle.put(rh.getHandle(), 
-                        Collections.synchronizedSet(new HashSet<Conversation>()));
+                        new HashSet<Conversation>());
             } else {
                 claimed = false;
             }
@@ -176,20 +217,34 @@ public class ServerInputProcessor implements CMessageVisitor<Void> {
         return null;
             
     }
-
+    
+    /**
+     * Sends the list of online users back to the 
+     * requesting user.
+     */
     @Override
     public Void visit(GetUsers gu) {
         outputWorkers.get(gu.getSenderHandle()).add(new OnlineUserList(
                 conversationsByHandle.keySet()).toString());
         return null;
     }
-
+    
+    /**
+     * Perform the necessary actions when a client disconnects,
+     * including deleting items from our data structures, exiting
+     * conversations, and notifying all remaining clients of the
+     * user offline event.
+     */
     @Override
     public Void visit(Disconnect d) {
         // terminate the SocketOutputWorker
         outputWorkers.remove(d.getHandle()).add("");
+        // if the disconnecting user had claimed a handle
         if (handlelessInputWorkers.remove(d.getHandle()) == null) {
-            Set<Conversation> convs = new HashSet<Conversation>(conversationsByHandle.get(d.getHandle()));
+            // need to make a copy because we will be deleting elements from the
+            // the original set during the iteration
+            Set<Conversation> convs = new HashSet<Conversation>(
+                    conversationsByHandle.get(d.getHandle()));
             for (Conversation c : convs) {
                 visit(new NormalAction(c.getId(), d.getHandle(), 
                       NormalAction.ActionType.EXIT_CONV, null, null, null));

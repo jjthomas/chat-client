@@ -23,6 +23,9 @@ import message.servertoclient.SMessageImpls.ReturnId;
 import message.servertoclient.SMessageVisitor;
 import client.ConversationLog.Message;
 
+/**
+ * See Conversation Design section 5b for high-level documentation.
+ */
 public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
     
     private MainListener ml;
@@ -30,6 +33,7 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
             Collections.synchronizedMap(new HashMap<Long, ConversationListener>());
     private Map<Long, ConversationLog> convLogs = new HashMap<Long, ConversationLog>();
     private SocketOutputWorker sow;
+    // this client's handle, set when it is claimed
     private String handle;
     
     public ClientInputProcessor() {}
@@ -39,6 +43,9 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
         this.ml = ml;
     }
     
+    /**
+     * Kick off the SocketOutputWorker and CSocketInputWorker.
+     */
     @Override
     public void initialize(Socket s, MainListener ml) throws IOException {
         this.ml = ml;
@@ -47,6 +54,13 @@ public class ClientInputProcessor implements SMessageVisitor<Void>, Controller {
         new CSocketInputWorker(s, this).start();
     }
     
+    /**
+     * Do the necessary setup for a conversation that we have
+     * been added to by another user.
+     * @param id conversation ID
+     * @param users the users who were in the conversation before
+     * the ADD_USER operation that included this client
+     */
     private void createdReceivedConversation(long id, List<String> users) {
         ConversationListener cl = ml.makeConversationListener(id);
         if (users != null)
