@@ -43,7 +43,7 @@ public class MainWindow extends JFrame implements MainListener {
     private List<String> onlinebuddies;
     private JList buddyList;
     private Queue<String> waitingConversations = new LinkedBlockingQueue<String>();
-    private ExecutorService e = Executors.newFixedThreadPool(1); /* to create sockets */
+    private ExecutorService e = Executors.newFixedThreadPool(5); /* to create sockets */
 
 	public MainWindow() {
 		
