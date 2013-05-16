@@ -16,6 +16,6 @@ public class Client {
     public static void main(String[] args) throws IOException {
         MainWindow mw = new MainWindow();
         mw.setController(new ClientInputProcessor());
-        mw.start();
+        mw.start(MainWindow.HOSTNAME_INTRO);
     }
 }

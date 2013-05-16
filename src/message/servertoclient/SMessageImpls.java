@@ -17,6 +17,10 @@ public class SMessageImpls {
             this.handles = handles;
         }
         
+        public static OnlineUserList deserialize(String wireMessage) {
+            return new OnlineUserList(Util.deserializeList(Util.removeTag(wireMessage))); 
+        }
+        
         public Collection<String> getHandles() {
             return handles;
         }
@@ -55,6 +59,37 @@ public class SMessageImpls {
             this.textMessage = textMessage;
         }
         
+        private static String combine(String[] components, int startInd) {
+            String combo = components[startInd];
+            for (int i = startInd + 1; i < components.length; i++) {
+                combo += SEPARATOR + components[i];
+            }
+            return combo;
+        }
+        
+        public static NormalAction deserialize(String wireMessage) {
+            String textMessage = null;
+            List<String> usersToAdd = null;
+            List<String> currentUsers = null;
+            NormalAction.ActionType at = NormalAction.ActionType.EXIT_CONV;
+            String[] components = wireMessage.split(SEPARATOR);
+            if (components[3].startsWith("text")) {
+                textMessage = Util.removeTag(combine(components, 3));
+                at = NormalAction.ActionType.TEXT_MESSAGE;
+            } else if (components[3].startsWith("add")) {
+                usersToAdd = Util.deserializeList(
+                        Util.removeTag(combine(components, 3)));
+                at = NormalAction.ActionType.ADD_USER;
+            } else if (components[3].startsWith("current")) {
+                currentUsers = Util.deserializeList(Util.removeTag(components[3]));
+                usersToAdd = Util.deserializeList(Util.removeTag(
+                        combine(components, 4)));
+                at = NormalAction.ActionType.ADD_USER;
+            }
+            return new NormalAction(Long.parseLong(components[1]), 
+                    components[2], at, usersToAdd, currentUsers, textMessage);       
+        }
+        
         public long getId() {
             return id;
         }
@@ -90,9 +125,9 @@ public class SMessageImpls {
             switch(at) {
             case TEXT_MESSAGE: actionPart = "text: " + textMessage; break;
             case EXIT_CONV: actionPart = "exit"; break;
-            case ADD_USER: actionPart = "add: " + Util.serializeCollection(handles)
-                    + ((currentUsers == null) ? "" : SEPARATOR + "current: " + 
-                      Util.serializeCollection(currentUsers));
+            case ADD_USER: actionPart = ((currentUsers == null) ? "" : "current: " + 
+                    Util.serializeCollection(currentUsers) + SEPARATOR) + 
+                    "add: " + Util.serializeCollection(handles);
             }
             return "conv" + SEPARATOR + id + SEPARATOR + senderHandle + 
                     SEPARATOR + actionPart;
@@ -115,6 +150,12 @@ public class SMessageImpls {
         public AvailabilityInfo(String handle, Status s) {
             this.handle = handle;
             this.s = s;
+        }
+        
+        public static AvailabilityInfo deserialize(String wireMessage) {
+            return new AvailabilityInfo(Util.removeTag(wireMessage), 
+                    wireMessage.startsWith("online") ? Status.ONLINE : 
+                        Status.OFFLINE);
         }
         
         public String getHandle() {
@@ -148,6 +189,10 @@ public class SMessageImpls {
             this.handle = handle;
         }
         
+        public static BadHandle deserialize(String wireMessage) {
+            return new BadHandle(Util.removeTag(wireMessage));
+        }
+        
         public String getHandle() {
             return handle;
         }
@@ -168,6 +213,10 @@ public class SMessageImpls {
         
         public HandleClaimed(String handle) {
             this.handle = handle;
+        }
+        
+        public static HandleClaimed deserialize(String wireMessage) {
+            return new HandleClaimed(Util.removeTag(wireMessage));
         }
         
         public String getHandle() {
@@ -193,6 +242,10 @@ public class SMessageImpls {
             this.id = id;
         }
         
+        public static ReturnId deserialize(String wireMessage) {
+            return new ReturnId(Long.parseLong(Util.removeTag(wireMessage)));
+        }
+        
         public long getId() {
             return id;
         }
@@ -208,44 +261,20 @@ public class SMessageImpls {
         }
     }
     
-    // TOOD: delegate deserialization to the individual classes?
     public static SMessage deserialize(String wireMessage) {
-        String[] components = wireMessage.split(SEPARATOR);
-        if (components[0].startsWith("id")) {
-            return new ReturnId(Long.parseLong(
-                    Util.removeTag(components[0])));
-        } else if (components[0].startsWith("conv")) {
-            String textMessage = null;
-            List<String> usersToAdd = null;
-            List<String> currentUsers = null;
-            NormalAction.ActionType at = NormalAction.ActionType.EXIT_CONV;
-            if (components[3].startsWith("text")) {
-                textMessage = Util.removeTag(components[3]);
-                at = NormalAction.ActionType.TEXT_MESSAGE;
-            } else if (components[3].startsWith("add")) {
-                usersToAdd = Util.deserializeList(
-                        Util.removeTag(components[3]));
-                at = NormalAction.ActionType.ADD_USER;
-                if (components.length == 5) {
-                    currentUsers = Util.deserializeList(Util.removeTag(
-                            components[4]));
-                }
-            }
-            return new NormalAction(Long.parseLong(components[1]), 
-                    components[2], at, usersToAdd, currentUsers, textMessage);
-        } else if (components[0].startsWith("online")) {
-            return new AvailabilityInfo(Util.removeTag(components[0]), 
-                    AvailabilityInfo.Status.ONLINE);
-        } else if (components[0].startsWith("offline")) {
-            return new AvailabilityInfo(Util.removeTag(components[0]), 
-                    AvailabilityInfo.Status.OFFLINE);
-        } else if (components[0].startsWith("unavailable")) {
-            return new BadHandle(Util.removeTag(components[0]));
-        } else if (components[0].startsWith("claimed")) {
-            return new HandleClaimed(Util.removeTag(components[0]));
+        if (wireMessage.startsWith("id")) {
+            return ReturnId.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("conv")) {
+            return NormalAction.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("online") || 
+                wireMessage.startsWith("online")) {
+            return AvailabilityInfo.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("unavailable")) {
+            return BadHandle.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("claimed")) {
+            return HandleClaimed.deserialize(wireMessage);
         } else {
-            return new OnlineUserList(Util.deserializeList(
-                    Util.removeTag(components[0])));
+            return OnlineUserList.deserialize(wireMessage);
         }
     }
 }

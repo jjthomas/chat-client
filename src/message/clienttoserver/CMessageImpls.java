@@ -13,6 +13,11 @@ public class CMessageImpls {
             this.senderHandle = senderHandle;
         }
         
+        public static GetId deserialize(String wireMessage) {
+            return new GetId(wireMessage.substring(
+                    wireMessage.indexOf(SEPARATOR) + 1));
+        }
+        
         public String getSenderHandle() {
             return senderHandle;
         }
@@ -36,6 +41,11 @@ public class CMessageImpls {
         public RegisterHandle(String handle, String tempHandle) {
             this.handle = handle;
             this.tempHandle = tempHandle;
+        }
+        
+        public static RegisterHandle deserialize(String wireMessage) {
+            String[] components = wireMessage.split(SEPARATOR);
+            return new RegisterHandle(Util.removeTag(components[0]), components[1]);
         }
         
         public String getHandle() {
@@ -64,6 +74,11 @@ public class CMessageImpls {
             this.senderHandle = senderHandle;
         }
         
+        public static GetUsers deserialize(String wireMessage) {
+            return new GetUsers(wireMessage.substring(
+                    wireMessage.indexOf(SEPARATOR) + 1));            
+        }
+        
         public String getSenderHandle() {
             return senderHandle;
         }
@@ -86,6 +101,10 @@ public class CMessageImpls {
             this.handle = handle;
         }
         
+        public static Disconnect deserialize(String wireMessage) {
+            return new Disconnect(Util.removeTag(wireMessage));
+        }
+        
         public String getHandle() {
             return handle;
         }
@@ -104,19 +123,17 @@ public class CMessageImpls {
          */
     }
     
-    // TOOD: delegate deserialization to the individual classes?
     public static CMessage deserialize(String wireMessage) {
-        String[] components = wireMessage.split(SEPARATOR);
-        if (components[0].startsWith("getid")) {
-            return new GetId(components[1]);
-        } else if (components[0].startsWith("conv")) {
-            return (CMessage) SMessageImpls.deserialize(wireMessage);
-        } else if (components[0].startsWith("handle")) {
-            return new RegisterHandle(Util.removeTag(components[0]), components[1]);
-        } else if (components[0].startsWith("disconnect")) {
-            return new Disconnect(Util.removeTag(components[0]));
+        if (wireMessage.startsWith("getid")) {
+            return GetId.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("conv")) {
+            return SMessageImpls.NormalAction.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("handle")) {
+            return RegisterHandle.deserialize(wireMessage);
+        } else if (wireMessage.startsWith("disconnect")) {
+            return Disconnect.deserialize(wireMessage);
         } else {
-            return new GetUsers(components[1]);
+            return GetUsers.deserialize(wireMessage);
         }
     }
 }

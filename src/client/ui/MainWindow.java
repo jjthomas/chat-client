@@ -7,7 +7,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.GroupLayout;
 import javax.swing.JFrame;
@@ -27,14 +32,18 @@ import client.MainListener;
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame implements MainListener {
     
+    public static final String HOSTNAME_INTRO = " (include port number after colon at end)";
+    
     private Controller c;
     private JLabel hello;
-    private static final String HANDLE_TAKEN = " (previous handle already taken)";
+    private static final String HANDLE_TAKEN = " (previous handle either had invalid chars or was already taken)";
+    private static final String HOSTNAME_BAD = " (previous IP/hostname+port was unreachable)";
     private static final String WELCOME_TEXT = "Hello, *! Here are your " + 
             "friends online. Click on a friend to chat.";
     private List<String> onlinebuddies;
     private JList buddyList;
     private Queue<String> waitingConversations = new LinkedBlockingQueue<String>();
+    private ExecutorService e = Executors.newFixedThreadPool(1); /* to create sockets */
 
 	public MainWindow() {
 		
@@ -83,15 +92,35 @@ public class MainWindow extends JFrame implements MainListener {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
-	public void start() throws IOException {
+	public void start(String addendum) throws IOException {
         String hostname = JOptionPane.showInputDialog(
-                "Hostname/IP of server (include port number after colon at end): ");
-        String[] components = hostname.split(":");
-        int port = 5000;
-        if (components.length > 1) {
-            port = Integer.parseInt(components[1]);
+                "Hostname/IP of server" + addendum + ": ");
+        if (hostname == null) {
+            start(HOSTNAME_INTRO);
+            return;
         }
-        Socket s = new Socket(components[0], port);
+        
+        final String[] components = hostname.split(":");
+        final int port = components.length > 1 ? Integer.parseInt(components[1]) : 5000;
+        Future<Socket> f = e.submit(new Callable<Socket>() {
+            public Socket call() {
+                Socket s = null;
+                try {
+                    s = new Socket(components[0], port);
+                } catch (IOException ioe) {}
+                return s;
+            }
+        });
+        
+        Socket s = null;
+        try {
+            s = f.get(1, TimeUnit.SECONDS);
+        } catch (Exception e) {}
+        
+        if (s == null) {
+            start(HOSTNAME_BAD);
+            return;
+        }
         c.initialize(s, this);
         promptHandle("");
 	}
@@ -99,6 +128,10 @@ public class MainWindow extends JFrame implements MainListener {
 	public void promptHandle(String addendum) {
         String handle = JOptionPane.showInputDialog(
                 "Enter desired handle" + addendum + ": ");
+        if (handle == null) {
+            promptHandle("");
+            return;
+        }
         c.registerHandle(handle);
 	}
 
@@ -120,6 +153,7 @@ public class MainWindow extends JFrame implements MainListener {
 		        }
 		        
 		        buddyList.setListData(onlinebuddies.toArray());
+		        pack();
             }
     	});
         
@@ -131,6 +165,7 @@ public class MainWindow extends JFrame implements MainListener {
             public void run() {
 		        onlinebuddies.remove(handle);
 		        buddyList.setListData(onlinebuddies.toArray());
+		        pack();
             }
     	});
         

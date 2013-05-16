@@ -3,10 +3,8 @@ we now have a Disconnect client-to-server message (faked),
 and a map to store SSocketInputWorkers whose corresponding clients 
 have not yet claimed a handle. We also have modified some of the
 message datatypes.
-5. AtomicLong to concurrency strategy?
-8. Move Server.java code to an actual instance method, not main.
-9. Mqke robust to bad input? i.e. add_user with unavailable users, try to send
-message for conversation with unrecognized ID
+	9. Mqke robust to bad input? i.e. add_user with unavailable users, try to send
+	message for conversation with unrecognized ID
 10. Changed line separator to /
 12. make sure the controller's role is clear
 13. make sure we can handle newlines and whatnot after the change of separator 

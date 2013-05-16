@@ -52,15 +52,19 @@ public class ChatWindow extends JFrame implements ConversationListener {
 
 
 		JLabel addUserLabel = new JLabel();
-		addUserLabel.setText("Add user:");
+		addUserLabel.setText("Add users (comma-delimited list):");
 		final JTextField addName = new JTextField();
 		addName.addActionListener(
 				new ActionListener(){
 					public void actionPerformed(ActionEvent e){
 						String text = addName.getText();
+						if (text.isEmpty())
+						    return;
 						addName.setText("");
-						ArrayList<String> users = new ArrayList<String>();
-						users.add(text);
+						List<String> users = new ArrayList<String>();
+						for (String handle : text.split(",")) {
+						    users.add(handle.trim());
+						}
 						c.addUsers(id, users);
 					}
 				}
@@ -78,6 +82,8 @@ public class ChatWindow extends JFrame implements ConversationListener {
 			new ActionListener(){
 				public void actionPerformed(ActionEvent e){
 					String text = input.getText();
+					if (text.isEmpty())
+					    return;
 					input.setText("");
 					c.sendMessage(id, text);
 				}
