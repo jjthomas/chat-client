@@ -22,45 +22,42 @@ import client.Controller;
 import client.ConversationListener;
 
 /**
- * // JottoGUI class is a UI for playing Jotto. 
- * // Remember to name all your components, otherwise autograder will give a zero.
- * // Remember to use the objects newPuzzleButton, newPuzzleNumber, puzzleNumber,
- * // guess, and guessTable in your GUI!
+ * See Conversation Design section 5d for high-level documentation.
  */
 @SuppressWarnings("serial")
 public class ConversationWindow extends JFrame implements ConversationListener {
     
     private Controller c;
-    private JList inChatList;
-    private List<String> people;
-    private JTextField input;
+    private JList communicantsJList;
+    private List<String> communicants;
+    private JTextField textMessageInput;
     private JTextArea chat;
 
 	public ConversationWindow(final long id) { 
 		
-	    people = new ArrayList<String>();
-		/*people.add("Mike");
-		people.add("George");
-		people.add("Hannah");
-		*/
+	    communicants = new ArrayList<String>();
 		
-		inChatList = new JList(people.toArray());
-		inChatList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
-		inChatList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-		inChatList.setVisibleRowCount(-1);
-		JScrollPane buddyScroll = new JScrollPane(inChatList);
+		communicantsJList = new JList(communicants.toArray());
+		communicantsJList.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+		communicantsJList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+		communicantsJList.setVisibleRowCount(-1);
+		JScrollPane buddyScroll = new JScrollPane(communicantsJList);
 
 
 		JLabel addUserLabel = new JLabel();
 		addUserLabel.setText("Add users (comma-delimited list):");
-		final JTextField addName = new JTextField();
-		addName.addActionListener(
+		final JTextField addUsers = new JTextField();
+		addUsers.addActionListener(
 				new ActionListener(){
+				    // if the text field is not empty,
+				    // clear it and send the list of 
+				    // added users to the controller so that it 
+				    // can forward it to the server
 					public void actionPerformed(ActionEvent e){
-						String text = addName.getText().trim();
+						String text = addUsers.getText().trim();
 	                    if (text.isEmpty())
 	                        return;
-						addName.setText("");
+						addUsers.setText("");
 						List<String> users = new ArrayList<String>();
 						for (String handle : text.split(",")) {
 						    users.add(handle.trim());
@@ -77,27 +74,28 @@ public class ConversationWindow extends JFrame implements ConversationListener {
 		JLabel send = new JLabel();
 		send.setText("Send:");
 		
-		input = new JTextField();
-		input.addActionListener(
+		textMessageInput = new JTextField();
+		textMessageInput.addActionListener(
 			new ActionListener(){
+			    // if the text field is not empty, clear it
+			    // and send the typed message to the controller
+			    // so that it can forward it to the server
 				public void actionPerformed(ActionEvent e){
-					String text = input.getText().trim();
+					String text = textMessageInput.getText().trim();
 					if (text.isEmpty())
 					    return;
-					input.setText("");
+					textMessageInput.setText("");
 					c.sendMessage(id, text);
 				}
 			}
 		);
 		
-		JPanel testchatwindow = new JPanel();
+		JPanel mainChatPanel = new JPanel();
 		chat = new JTextArea(20, 40);
 		JScrollPane display = new JScrollPane(chat);
 		chat.setEditable(false);
-		//display:
-		testchatwindow.add(display);
-		//textfield:
-		testchatwindow.add(input);
+		mainChatPanel.add(display);
+		mainChatPanel.add(textMessageInput);
 
 
 		GroupLayout layout = new GroupLayout(this.getContentPane());
@@ -109,15 +107,15 @@ public class ConversationWindow extends JFrame implements ConversationListener {
 				layout.createSequentialGroup()
 
 				.addGroup(layout.createParallelGroup()
-						.addComponent(testchatwindow)
+						.addComponent(mainChatPanel)
 						
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(addUserLabel)
-								.addComponent(addName))
+								.addComponent(addUsers))
 						
 						.addGroup(layout.createSequentialGroup()
 								.addComponent(send)
-								.addComponent(input)
+								.addComponent(textMessageInput)
 								)
 						)
 
@@ -139,13 +137,13 @@ public class ConversationWindow extends JFrame implements ConversationListener {
 						
 						.addGroup(layout.createParallelGroup()
 								.addComponent(addUserLabel)
-								.addComponent(addName)
+								.addComponent(addUsers)
 							)
 						
-						.addComponent(testchatwindow)
+						.addComponent(mainChatPanel)
 						.addGroup(layout.createParallelGroup()
 								.addComponent(send)
-								.addComponent(input)
+								.addComponent(textMessageInput)
 								)
 						)
 								
@@ -158,42 +156,18 @@ public class ConversationWindow extends JFrame implements ConversationListener {
 					public void windowClosed(WindowEvent e) {
 				        c.exitConversation(id);
 				    }
-
 					@Override
-					public void windowActivated(WindowEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
+					public void windowActivated(WindowEvent arg0) {}
 					@Override
-					public void windowClosing(WindowEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
+					public void windowClosing(WindowEvent arg0) {}
 					@Override
-					public void windowDeactivated(WindowEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
+					public void windowDeactivated(WindowEvent arg0) {}
 					@Override
-					public void windowDeiconified(WindowEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
+					public void windowDeiconified(WindowEvent arg0) {}
 					@Override
-					public void windowIconified(WindowEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
-
+					public void windowIconified(WindowEvent arg0) {}
 					@Override
-					public void windowOpened(WindowEvent arg0) {
-						// TODO Auto-generated method stub
-						
-					}
+					public void windowOpened(WindowEvent arg0) {}
 				}
 				);
 		pack();
@@ -204,7 +178,10 @@ public class ConversationWindow extends JFrame implements ConversationListener {
     public void setController(Controller c) {
         this.c = c;
     }
-
+    
+    /**
+     * Add the given message to the GUI.
+     */
     @Override
     public void addMessage(final String senderHandle, final String message) {
     	SwingUtilities.invokeLater(new Runnable() {
@@ -214,30 +191,36 @@ public class ConversationWindow extends JFrame implements ConversationListener {
         });
         
     }
-
+    
+    /**
+     * Remove the given user from the user list in the view.
+     */
     @Override
     public void removeUser(final String handle) {
     	SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-            	people.remove(handle);
-            	inChatList.setListData(people.toArray());
+                chat.append(handle + " left the room.\n");
+            	communicants.remove(handle);
+            	communicantsJList.setListData(communicants.toArray());
             }
     	});
         
     }
-
+    
+    /**
+     * Add the given users to the user list in the view.
+     */
     @Override
     public void addUsers(final List<String> handles) {
     	SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-		        for(String s:handles){
-		        	if(!people.contains(s))
-		        	{
-		        	people.add(s);
+		        for(String s : handles){
+		        	if (!communicants.contains(s)) {
+		        	    communicants.add(s);
+		        	    chat.append(s + " entered the room.\n");
 		        	}
 		        }
-		        
-		        inChatList.setListData(people.toArray());
+		        communicantsJList.setListData(communicants.toArray());
             }
     	});
         

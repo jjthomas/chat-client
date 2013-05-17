@@ -2,6 +2,9 @@ package client;
 
 import java.util.Collection;
 
+/**
+ * See Conversation Design section 5ci for high-level documentation.
+ */
 public interface MainListener {
     public void setController(Controller c);
     public ConversationListener makeConversationListener(long id);

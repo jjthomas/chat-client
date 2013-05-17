@@ -3,6 +3,9 @@ package server;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * See Conversation Design section 4a for high-level documentation.
+ */
 public class Conversation {
     private List<String> communicants;
     private long id;
@@ -24,7 +27,12 @@ public class Conversation {
         communicants.addAll(additionalCommunicants);
     }
     
-    // returns true if communicants is now empty
+    /**
+     * Deletes the given communicant from the list of communicants.
+     * @param communicant the communicant to delete
+     * @return whether or not the communicants list is now
+     * empty
+     */
     public boolean deleteCommunicant(String communicant) {
         communicants.remove(communicant);
         return communicants.isEmpty();

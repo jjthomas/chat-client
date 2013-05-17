@@ -7,6 +7,10 @@ import message.clienttoserver.CMessage;
 import message.clienttoserver.CMessageVisitor;
 import message.util.Util;
 
+/**
+ * See Conversation Design section 1 and the server-to-client grammar 
+ * for high-level documentation.
+ */
 public class SMessageImpls {
     
     public static final String SEPARATOR = "/";

@@ -6,6 +6,9 @@ import java.net.Socket;
 import message.servertoclient.SMessageImpls;
 import message.servertoclient.SMessageVisitor;
 
+/**
+ * See Conversation Design section 5a for high-level documentation.
+ */
 public class CSocketInputWorker extends SocketInputWorker {
     private SMessageVisitor<Void> smv;
     

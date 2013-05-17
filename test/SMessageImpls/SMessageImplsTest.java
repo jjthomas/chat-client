@@ -15,7 +15,6 @@ public class SMessageImplsTest {
 	@Test
     public void testNormalActionExit() {
     	SMessage CM = SMessageImpls.deserialize("conv/12/james/exit");
-    	System.out.println(CM.toString());
     	Assert.assertEquals(CM.toString(), "conv/12/james/exit");
 }
 	@Test

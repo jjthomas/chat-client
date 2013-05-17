@@ -6,6 +6,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import message.clienttoserver.CMessage;
 import message.clienttoserver.CMessageVisitor;
 
+/**
+ * See Conversation Design section 4b for high-level documentation.
+ */
 public class ServerMessageDispatcher extends Thread implements CMessageDispatcher {
     
     private BlockingQueue<CMessage> q = new LinkedBlockingQueue<CMessage>();
