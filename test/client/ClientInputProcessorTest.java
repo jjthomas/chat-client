@@ -4,8 +4,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import message.clienttoserver.CMessage;
-import message.clienttoserver.CMessageImpls;
 import message.servertoclient.SMessageImpls.AvailabilityInfo;
 import message.servertoclient.SMessageImpls.AvailabilityInfo.Status;
 import message.servertoclient.SMessageImpls.BadHandle;
