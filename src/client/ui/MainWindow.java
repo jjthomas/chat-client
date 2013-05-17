@@ -110,6 +110,15 @@ public class MainWindow extends JFrame implements MainListener {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	}
 	
+	/**
+	 * Prompts the user for the IP/hostname of the server and then
+	 * their desired handle. Does fairly comprehensive error checking
+	 * on the input.
+	 * @param addendum text to be added onto the end of the IP/hostname
+	 * dialog box's message
+	 * @throws IOException if we successfully connect to the server
+	 * but then there are IO errors afterwards
+	 */
 	public void start(String addendum) throws IOException {
         String hostname = JOptionPane.showInputDialog(
                 "Hostname/IP of server" + addendum + ": ");
@@ -153,7 +162,13 @@ public class MainWindow extends JFrame implements MainListener {
         promptHandle("");
 	}
 	
-	public void promptHandle(String addendum) {
+	/**
+	 * Prompts the user for their desired handle 
+	 * and then sends it to the controller.
+	 * @param addendum text to be added onto the end of the
+	 * handle dialog box's message
+	 */
+	private void promptHandle(String addendum) {
         String handle = JOptionPane.showInputDialog(
                 "Enter desired alphanumeric handle that starts with a letter" + addendum + ": ");
         if (handle == null) {
@@ -162,14 +177,21 @@ public class MainWindow extends JFrame implements MainListener {
         }
         c.registerHandle(handle.trim());
 	}
-
+	
+	/**
+	 * Create a new ConversationListener for the conversation
+	 * with given ID.
+	 */
     @Override
     public ConversationListener makeConversationListener(long id) {
         ConversationListener cl = new ConversationWindow(id);
         cl.setController(c);
         return cl;
     }
-
+    
+    /**
+     * Add the given users to the online users list in the view.
+     */
     @Override
     public void addOnlineUsers(final Collection<String> handles) {
     	SwingUtilities.invokeLater(new Runnable() {
@@ -186,7 +208,10 @@ public class MainWindow extends JFrame implements MainListener {
     	});
         
     }
-
+    
+    /**
+     * Remove the given user from the online users list in the view.
+     */
     @Override
     public void removeOfflineUser(final String handle) {
     	SwingUtilities.invokeLater(new Runnable() {
@@ -198,12 +223,20 @@ public class MainWindow extends JFrame implements MainListener {
     	});
         
     }
-
+    
+    /**
+     * Respond to a notification that the user-submitted handle
+     * was invalid or already taken.
+     */
     @Override
     public void badHandle(String handle) {
         promptHandle(HANDLE_TAKEN);
     }
-
+    
+    /**
+     * Respond to a notification that the user-submitted handle
+     * was successfully claimed.
+     */
     @Override
     public void handleClaimed(final String handle) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -211,7 +244,9 @@ public class MainWindow extends JFrame implements MainListener {
                 hello.setText(WELCOME_TEXT.replace("*", handle));
                 setVisible(true);
                 pack();
-                c.getUsers();
+                c.getUsers(); // we want the controller
+                // to ask the server for the list of online users
+                // so we can display it here in the view
             }
         });
     }
@@ -220,7 +255,11 @@ public class MainWindow extends JFrame implements MainListener {
     public void setController(Controller c) {
         this.c = c;
     }
-
+    
+    /**
+     * Respond to a notification that a new conversation ID
+     * was received from the server.
+     */
     @Override
     public void newId(long id) {
         ConversationListener cl = new ConversationWindow(id);

@@ -7,6 +7,9 @@ import server.CMessageDispatcher;
 
 import message.clienttoserver.CMessageImpls;
 
+/**
+ * See Conversation Design section 4c for high-level documentation.
+ */
 public class SSocketInputWorker extends SocketInputWorker {
     
     private String tempHandle;

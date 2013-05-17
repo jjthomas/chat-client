@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 
+/**
+ * See Conversation Design section 4ci for high-level documentation.
+ */
 public abstract class SocketInputWorker extends Thread {
     private BufferedReader in;
     protected static final String DISCONNECT = "disconnect";

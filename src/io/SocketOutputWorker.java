@@ -6,6 +6,9 @@ import java.net.Socket;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
+/**
+ * See Conversation Design section 3a for high-level documentation.
+ */
 public class SocketOutputWorker extends Thread {
     // protected for testing
     protected PrintWriter out;

@@ -3,6 +3,10 @@ package message.clienttoserver;
 import message.servertoclient.SMessageImpls;
 import message.util.Util;
 
+/**
+ * See Conversation Design section 2 and the client-to-server 
+ * grammar for high-level documentation.
+ */
 public class CMessageImpls {
     
     public static final String SEPARATOR = "/";
