@@ -4,9 +4,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
+import message.clienttoserver.CMessage;
+import message.clienttoserver.CMessageImpls;
+import message.servertoclient.SMessageImpls.AvailabilityInfo;
 import message.servertoclient.SMessageImpls.AvailabilityInfo.Status;
+import message.servertoclient.SMessageImpls.BadHandle;
+import message.servertoclient.SMessageImpls.HandleClaimed;
+import message.servertoclient.SMessageImpls.NormalAction;
 import message.servertoclient.SMessageImpls.NormalAction.ActionType;
-import message.servertoclient.SMessageImpls.*;
+import message.servertoclient.SMessageImpls.OnlineUserList;
+import message.servertoclient.SMessageImpls.ReturnId;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -82,10 +89,11 @@ public class ClientInputProcessorTest {
         MainListener ml = new MainListenerMock(os);
         ClientInputProcessor cip = new ClientInputProcessor(ml);
         cip.visit(new HandleClaimed("james"));
-        System.out.println(os.toString());
         Assert.assertEquals(os.toString(), 
                 "ml/handleClaimed/james\n");
     }
+    
+    
 }
 
 
