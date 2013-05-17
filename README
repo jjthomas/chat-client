@@ -1,0 +1,7 @@
+Server:
+Run Server.java. If a port other than 5000 is desired, it must be specified as the first command-line argument.
+
+Client:
+Run Client.java. In the first dialog that pops up, enter the hostname or IP of the server machine (localhost for 
+the local system), followed by
+a port suffix (e.g. ':4000') if the server is not running on the standard port (5000).
