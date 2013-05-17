@@ -1,4 +1,4 @@
-package SMessageImpls;
+package message.servertoclient;
 
 import junit.framework.Assert;
 import message.servertoclient.SMessage;
