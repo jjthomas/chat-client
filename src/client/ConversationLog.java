@@ -3,6 +3,9 @@ package client;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * See Conversation Design section 5bii2 for high-level documentation.
+ */
 public class ConversationLog {
     
     public static class Message {

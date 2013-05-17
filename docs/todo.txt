@@ -1,34 +1,4 @@
-3. Update design doc to reflect changes to design -- for example, 
-we now have a Disconnect client-to-server message (faked),
-and a map to store SSocketInputWorkers whose corresponding clients 
-have not yet claimed a handle. We also have modified some of the
-message datatypes.
-	9. Mqke robust to bad input? i.e. add_user with unavailable users, try to send
-	message for conversation with unrecognized ID
-10. Changed line separator to /
-12. make sure the controller's role is clear
-13. make sure we can handle newlines and whatnot after the change of separator 
-to / (and slash in the message) -- watch for any user input (handle + chat messags) 
-use some sort of consolidate method that combines all components[] after 4 
-(or however many we expected without any slashes)
-16. add minimal comments throughout (try to make reference to design 
-doc as much as possible)
-17. will we actually show a list of online users not in the conversation
-when "add users" is clicked? or will we show all users 
-18. make sure add user on server works properly when you add yourself to
-chat (click on yourself in chat window)
-19. show chat history not based on id for two-person chats but based on
-actual user
-20. solve concurrency bugs on server (related to original milestone 1
-blocking queue claim) or switch to a single-threaded queue server
-21. review GUI code
-22. explain how we implemented amendment changes
 
 Santhosh:
 14. make sure to test correct behavior for amendment (ClientInputProcessorTest)
 15. add tests for message package
-
-Back burner:
-6. Convert everything to Collection
-4. Make sure client behaves appropriately when the server disconnects (in the case
-of an Exception).

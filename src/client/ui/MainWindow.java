@@ -29,6 +29,9 @@ import client.Controller;
 import client.ConversationListener;
 import client.MainListener;
 
+/**
+ * See Conversation Design section 5c for high-level documentation.
+ */
 @SuppressWarnings("serial")
 public class MainWindow extends JFrame implements MainListener {
     
@@ -42,8 +45,21 @@ public class MainWindow extends JFrame implements MainListener {
             "friends online. Click on a friend to chat.";
     private List<String> onlinebuddies;
     private JList buddyList;
+    // when we try to start a conversation with a user, the user's handle is
+    // stored in this queue and a request for a new conversation ID is 
+    // immediately sent to the server. when the server returns a new conversation ID,
+    // a handle is removed from this queue and a conversation is now begun with this
+    // user.
     private Queue<String> waitingConversations = new LinkedBlockingQueue<String>();
-    private ExecutorService e = Executors.newFixedThreadPool(5); /* to create sockets */
+    // we need this thread pool to aid in our attempts to open sockets with the
+    // hosts the user supplies in the dialog box presented to them when the 
+    // client is launched. we want a fairly large number of threads here
+    // because the user may theoretically enter many bad hostnames and it
+    // sometimes takes a while for the Socket constructor to throw an
+    // IOException on a unreachable hostname (and we want these delays to
+    // be transparent to the user, so we need to always have available threads
+    // to try to create sockets with newly entered hostnames)
+    private ExecutorService e = Executors.newFixedThreadPool(5);
 
 	public MainWindow() {
 		
@@ -52,6 +68,8 @@ public class MainWindow extends JFrame implements MainListener {
 		buddyList = new JList(onlinebuddies.toArray());
 		buddyList.addListSelectionListener( 
 				new ListSelectionListener(){
+				    // kick off the work required to start a conversation
+				    // with the selected user
 					public void valueChanged(ListSelectionEvent e){
 						String selectedItem = (String) buddyList.getSelectedValue();
 						if (selectedItem == null)
