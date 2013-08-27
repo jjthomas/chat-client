@@ -3,6 +3,10 @@ Worked on this 6.005 final project with Yuqing Zhang and Santhosh Narayan in Spr
 Project requirements are described here:
 http://web.mit.edu/6.005/www/sp13/projects/guichat/
 
+Take a look at docs/project-report.pdf for a detailed overview of the design and implementation.
+
+HOW TO RUN:
+
 Server:
 Run Server.java. If a port other than 5000 is desired, it must be specified as the first command-line argument.
 

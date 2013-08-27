@@ -1,4 +1,0 @@
-
-Santhosh:
-14. make sure to test correct behavior for amendment (ClientInputProcessorTest)
-15. add tests for message package
